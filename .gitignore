@@ -1,0 +1,37 @@
+# Binaries
+userControl.exe
+*.exe
+*.dll
+
+# Go build artifacts
+/main
+/userControl
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Env / Secrets (DO NOT commit)
+.env
+*.env.local
+config.json
+
+# Logs
+*.log
+
+# WeUI / CDN (loaded via URL, no need to commit)
+# (none currently - all local files)
+
+# Test / debug tools
+cmd_testauth/
+
+# WorkBuddy internal
+.workbuddy/

@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>用户中心</title>
+    <!-- WeUI CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/weui@2.4.4/dist/style/weui.min.css">
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <!-- Axios -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <!-- WeUI JS (交互组件: toast/alert/dialog/actionsheet/picker 等) -->
+    <script src="https://unpkg.com/weui.js/dist/weui.min.js"></script>
+
+<style>
+/* ============================================
+   全局基础 & CSS 变量（亮色/暗色双模式）
+   ============================================ */
+html, body { height: 100%; background-color: var(--global-BG); color: var(--global-FG); transition: background .3s, color .3s; }
+body {
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    /* ---- 亮色模式变量 (默认) ---- */
+    --global-BG: #ededed;
+    --global-FG: #000;
+    --custom-bg-card: #fff;
+    --custom-bg-elevated: #f7f8fa;
+    --custom-bg-token: #f7f8fa;
+    --custom-border-token: #d9d9d9;
+    --custom-bg-icon: #e8f5e9;
+    --custom-bg-icon-2: #f0f0f0;
+    --custom-shadow-card: 0 2px 10px rgba(0,0,0,.05);
+    /* 文字颜色 */
+    --text-primary: #111;
+    --text-secondary: #888;
+    --text-hint: #b2b2b2;
+    /* 标签颜色 */
+    --tag-normal-bg: #e8f5e9; --tag-normal-fg: #2e7d32;
+    --tag-vip-bg: linear-gradient(135deg,#F5D479,#E5B84C); --tag-vip-fg: #8B6914;
+    --tag-svip-bg: linear-gradient(135deg,#2C2C2E,#000); --tag-svip-fg: #C9A227;
+    --tag-book-bg: linear-gradient(135deg,#5AC8FA,#007AFF); --tag-book-fg: #fff;
+    --tag-banned-bg: #fce4ec; --tag-banned-fg: #c62828;
+    /* 图标背景色 */
+    --icon-blue-bg: #576b95;
+    --icon-brand-bg: var(--weui-BRAND,#07C160);
+    --icon-orange-bg: #FA9D3B;
+}
+/* ---- 暗色模式覆盖 ---- */
+body[data-weui-theme="dark"] {
+    --global-BG: #111;
+    --global-FG: #e5e5e5;
+    --custom-bg-card: #1c1c1e;
+    --custom-bg-elevated: #2c2c2e;
+    --custom-bg-token: #1c1c1e;
+    --custom-border-token: rgba(255,255,255,.1);
+    --custom-bg-icon: rgba(7,193,96,.15);
+    --custom-bg-icon-2: rgba(255,255,255,.08);
+    --custom-shadow-card: 0 2px 12px rgba(0,0,0,.35);
+    /* 文字颜色反转 */
+    --text-primary: #e5e5e5;
+    --text-secondary: #999;
+    --text-hint: #666;
+    /* 标签暗色适配 */
+    --tag-normal-bg: rgba(46,125,50,.25); --tag-normal-fg: #81c784;
+    --tag-vip-bg: linear-gradient(135deg,#6b5a30,#5a4a20); --tag-vip-fg: #d4c57a;
+    --tag-svip-bg: linear-gradient(135deg,#3a3a3c,#1c1c1e); --tag-svip-fg: #C9A227;
+    --tag-book-bg: linear-gradient(135deg,#1a4a6b,#004080); --tag-book-fg: #90caf9;
+    --tag-banned-bg: rgba(198,40,40,.2); --tag-banned-fg: #ef5350;
+    /* 图标背景暗色 */
+    --icon-blue-bg: #3d5a99;
+    --icon-brand-bg: #06AD56;
+    --icon-orange-bg: #c67d2a;
+}
+
+/* ---- 暗色模式：WeUI 组件强制覆盖（手机端必须显式声明）---- */
+body[data-weui-theme="dark"] {
+    background-color: #111 !important; color: #e5e5e5;
+}
+body[data-weui-theme="dark"] .weui-cells,
+body[data-weui-theme="dark"] .weui-cells_form {
+    background-color: #1c1c1e;
+}
+body[data-weui-theme="dark"] .weui-cell {
+    background-color: #1c1c1e;
+}
+body[data-weui-theme="dark"] .weui-cell:before {
+    border-top-color: rgba(255,255,255,.08) !important;
+}
+body[data-weui-theme="dark"] .weui-input,
+body[data-weui-theme="dark"] .weui-textarea {
+    background-color: #2c2c2e;
+    color: #e5e5e5;
+}
+body[data-weui-theme="dark"] .weui-label {
+    color: #999;
+}
+body[data-weui-theme="dark"] .weui-form__title,
+body[data-weui-theme="dark"] .weui-panel__hd {
+    color: #e5e5e5;
+}
+body[data-weui-theme="dark"] .weui-media-box__desc {
+    color: #999;
+}
+body[data-weui-theme="dark"] .weui-media-box__title {
+    color: #e5e5e5;
+}
+body[data-weui-theme="dark"] .weui-btn_primary {
+    background-color: #06AD56 !important;
+}
+body[data-weui-theme="dark"] .weui-btn_default {
+    background-color: #2c2c2e;
+    color: #e5e5e5;
+    border-color: rgba(255,255,255,.15);
+}
+body[data-weui-theme="dark"] .weui-footer {
+    color: #666;
+}
+body[data-weui-theme="dark"] .weui-footer a {
+    color: #888;
+}
+body[data-weui-theme="dark"] input::placeholder,
+body[data-weui-theme="dark"] textarea::placeholder {
+    color: #555;
+}
+
+/* ============================================
+   登录页
+   ============================================ */
+.login-page {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+}
+/* 品牌和表单的包裹层，确保它们作为一个整体居中 */
+.login-inner {
+    width: 100%;
+    max-width: 460px;
+}
+
+.login-brand { text-align: center; padding-bottom: 20px; }
+.login-brand-logo {
+    width: 64px; height: 64px; border-radius: 18px;
+    background: linear-gradient(135deg,var(--weui-BRAND),#06AD56);
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 16px rgba(7,193,96,.28);
+}
+.login-brand-logo svg { width: 32px; height: 32px; fill: none; stroke: #fff; stroke-width: 2; }
+.login-brand h1 { font-size: 22px; font-weight: 600; color: var(--text-primary); letter-spacing: -.5px; }
+.login-brand p { font-size: 13px; color: var(--text-secondary); margin-top: 6px; }
+
+.login-form-wrap {
+    width: 100%;
+    max-width: 420px;
+    background: var(--custom-bg-card);
+    border-radius: 14px;
+    box-shadow: var(--custom-shadow-card);
+    overflow: hidden;
+}
+
+/* ============================================
+   主面板容器
+   ============================================ */
+.main-wrap {
+    min-height: 100vh;
+}
+.main-content {
+    max-width: 680px;
+    margin: 0 auto;
+}
+
+/* ============================================
+   状态标签（用 CSS 变量，暗色自动切换）
+   ============================================ */
+.status-tag {
+    display: inline-block; padding: 3px 12px;
+    border-radius: 999px; font-size: 13px;
+    font-weight: 600; line-height: 1.6;
+}
+.tag-normal   { background: var(--tag-normal-bg);   color: var(--tag-normal-fg);   }
+.tag-vip      { background: var(--tag-vip-bg);      color: var(--tag-vip-fg);      }
+.tag-svip     { background: var(--tag-svip-bg);     color: var(--tag-svip-fg);     }
+.tag-book     { background: var(--tag-book-bg);     color: var(--tag-book-fg);     }
+.tag-banned   { background: var(--tag-banned-bg);   color: var(--tag-banned-fg);   }
+
+/* ============================================
+   用户头像卡片区
+   ============================================ */
+.user-profile-card {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 20px 16px 16px; gap: 10px;
+}
+.user-avatar-wrap {
+    position: relative; width: 72px; height: 72px;
+    flex-shrink: 0;
+}
+.user-avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    object-fit: cover; border: 3px solid var(--custom-bg-card);
+    box-shadow: 0 2px 12px rgba(0,0,0,.12);
+    transition: transform .2s;
+}
+.user-avatar:hover { transform: scale(1.05); }
+.avatar-status-dot {
+    position: absolute; bottom: 2px; right: 2px;
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid var(--custom-bg-card);
+    background: #07C160; box-sizing: border-box;
+}
+.user-nickname {
+    font-size: 17px; font-weight: 600; color: var(--text-primary);
+    max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.user-qq-id {
+    font-size: 13px; color: var(--text-secondary);
+}
+
+/* ============================================
+   Token 展示区
+   ============================================ */
+.token-box {
+    margin: 10px 16px 14px; padding: 12px 14px;
+    border-radius: 8px; background: var(--custom-bg-token);
+    border: 1px dashed var(--custom-border-token);
+    font-family: 'Consolas','Roboto Mono',monospace;
+    font-size: 12.5px; line-height: 1.7; color: var(--weui-BRAND);
+    word-break: break-all;
+    user-select: all; -webkit-user-select: all;
+}
+.token-hint { display: block; font-size: 11px; color: var(--text-secondary); margin-top: 6px; }
+
+/* ============================================
+   SVG 图标容器（替代 emoji）
+   ============================================ */
+.svg-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.asset-icon-wrap {
+    width: 52px; height: 52px; border-radius: 10px;
+    background: var(--custom-bg-icon); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+}
+.asset-icon-wrap svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.asset-icon-wrap .icon-stroke { color: #2e7d32; }       /* 钥匙图标绿色 */
+.asset-icon-alt { background: var(--custom-bg-icon-2) !important; }
+.asset-icon-alt svg { color: var(--text-secondary); }  /* 用户图标灰色 */
+
+.empty-icon {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: var(--custom-bg-icon-2); display: inline-flex;
+    align-items: center; justify-content: center;
+    margin-bottom: 12px;
+}
+.empty-icon svg { width: 28px; height: 28px; fill: none; stroke: var(--text-hint); stroke-width: 1.8; }
+
+/* 空状态 */
+.empty-state { text-align: center; padding: 36px 0 28px; color: var(--text-secondary); }
+.empty-title { font-size: 15px; font-weight: 500; color: var(--text-primary); }
+.empty-desc { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+
+/* 用量进度条 */
+.usage-bar-wrap { padding: 8px 0; }
+.usage-bar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.usage-bar-name { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+.usage-bar-num { font-size: 13px; color: var(--text-secondary); }
+.usage-bar-num b { color: var(--text-primary); font-weight: 600; }
+.usage-bar-track {
+    width: 100%; height: 8px; border-radius: 4px;
+    background: var(--custom-bg-icon-2); overflow: hidden;
+}
+.usage-bar-fill {
+    height: 100%; border-radius: 4px;
+    background: var(--weui-BRAND, #07C160);
+    transition: width .4s ease;
+}
+.usage-bar-fill.warn { background: #FA9D3B; }
+.usage-bar-fill.danger { background: #FA5151; }
+.usage-total { display:flex; justify-content:space-between; margin-top:10px; padding-top:10px; border-top:1px solid var(--custom-border-token, rgba(0,0,0,.06)); font-size:13px; color:var(--text-secondary); }
+.usage-total b { color:var(--text-primary); font-weight:600; }
+
+/* CDK 区域 */
+.cdk-area { padding: 4px 16px 18px; }
+.cdk-input-wrap { display: flex; align-items: center; gap: 10px; }
+.cdk-input-wrap .cdk-field { flex: 1; min-width: 0; }
+
+/* 导航栏增强 */
+.nav-enhanced {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--global-BG);
+    transition: background .3s;
+}
+
+/* 主题切换按钮 */
+.theme-toggle-btn {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--custom-bg-elevated);
+    color: var(--text-primary);
+    transition: transform .2s, background .2s;
+}
+.theme-toggle-btn:hover { transform: scale(1.08); }
+.theme-toggle-btn:active { transform: scale(.95); }
+.theme-toggle-btn svg { width: 18px; height: 18px; fill: currentColor; }
+
+/* 密码显示/隐藏切换按钮 */
+.pwd-toggle {
+    display:inline-flex; align-items:center; justify-content:center;
+    flex-shrink:0; margin-left:8px; cursor:pointer;
+    width:32px; height:32px; border-radius:6px;
+    color:var(--text-hint); transition:color .2s, background .2s;
+}
+.pwd-toggle:hover, .pwd-toggle:active {
+    color:var(--text-secondary); background:var(--custom-bg-elevated);
+}
+.pwd-toggle svg { width: 20px; height: 20px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+
+/* 面板标题图标（SVG） */
+.panel-icon-svg {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:22px; height:22px; border-radius:6px; flex-shrink:0;
+}
+.panel-icon-user { background: var(--icon-blue-bg); }
+.panel-icon-assets { background: var(--icon-brand-bg); }
+.panel-icon-cdk { background: var(--icon-orange-bg); }
+.panel-icon-key { background: var(--icon-blue-bg); }
+.panel-icon-qq { background: var(--custom-bg-icon-2); }
+.panel-icon-svg svg { width:14px; height:14px; fill:#fff; }
+
+/* 动画 */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.anim-in { animation: fadeInUp .4s ease both; }
+.anim-d1 { animation-delay: .05s; }
+.anim-d2 { animation-delay: .10s; }
+.anim-d3 { animation-delay: .15s; }
+
+/* 头像加载动画 */
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+.avatar-loading {
+    background: linear-gradient(90deg, var(--custom-bg-icon-2) 25%, var(--custom-bg-elevated) 37%, var(--custom-bg-icon-2) 63%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* 响应式断点 */
+
+/* ---- 平板 (>= 768px) ---- */
+@media (min-width: 768px) {
+    .login-form-wrap { max-width: 480px; padding: 20px 30px; border-radius: 16px; }
+    .main-content { max-width: 720px; }
+    .weui-panel { border-radius: 12px !important; margin-top: 16px !important; }
+    .token-box { font-size: 13.5px; }
+    .nav-enhanced { padding: 0 20px; }
+    .user-avatar { width: 84px; height: 84px; }
+    .user-avatar-wrap { width: 84px; height: 84px; }
+    .avatar-status-dot { width: 18px; height: 18px; bottom: 3px; right: 3px; }
+}
+
+/* ---- 桌面 (>= 1024px) ---- */
+@media (min-width: 1024px) {
+    .login-page { padding: 48px 40px; }
+    .login-form-wrap { max-width: 460px; padding: 36px 40px; }
+    .main-content { max-width: 800px; padding: 0 24px; }
+
+    .nav-enhanced .weui-navbar__item { font-size: 18px; padding-left: 24px; }
+    .weui-panel { border-radius: 14px !important; overflow: hidden; }
+    .weui-panel__hd { padding: 18px 20px 10px !important; }
+
+    .weui-media-box_appmsg .weui-media-box__hd { width: 72px !important; height: 72px !important; }
+    .asset-icon-wrap { width: 60px; height: 60px; }
+    .asset-icon-wrap svg { width: 28px; height: 28px; }
+    .weui-media-box__title { font-size: 17px; }
+    .token-box { font-size: 14px; padding: 16px 18px; }
+
+    .weui-btn-area { margin: 48px 0 24px !important; }
+    .weui-form__opr-area { padding: 38px 32px 24px !important; }
+    .weui-form__extra-area { padding-bottom: 32px; }
+    .cdk-input-wrap .weui-input { font-size: 16px; padding: 12px 15px; }
+
+    .user-avatar { width: 96px; height: 96px; }
+    .user-avatar-wrap { width: 96px; height: 96px; }
+    .avatar-status-dot { width: 20px; height: 20px; bottom: 4px; right: 4px; }
+    .user-nickname { font-size: 19px; max-width: 300px; }
+    .user-qq-id { font-size: 14px; }
+}
+
+/* ---- 大屏桌面 (>= 1440px) ---- */
+@media (min-width: 1440px) {
+    .main-content { max-width: 900px; }
+    .desktop-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        align-items: start;
+    }
+    .desktop-grid .weui-panel { margin-top: 16px !important; }
+}
+
+</style>
+</head>
+
+<body ontouchstart="">
+
+
+<!-- ==========================================================
+     未登录：登录 / 注册 / 重置密码
+     ========================================================== -->
+<div v-if="!isLoggedIn" class="login-page">
+
+    <!-- 品牌 + 表单 整体居中容器 -->
+    <div class="login-inner">
+
+    <!-- 品牌 -->
+    <div class="login-brand anim-in">
+        <div class="login-brand-logo">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <h1>xi~ API</h1>
+        <p>API 服务控制台</p>
+
+        <!-- 主题切换 -->
+        <button class="theme-toggle-btn" @click="toggleTheme" :title="isDark ? '切换到日间模式' : '切换到夜间模式'" style="margin-top:20px;">
+            <svg v-if="isDark" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+            <svg v-else viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        </button>
+    </div>
+
+    <!-- ===== 登录表单 ===== -->
+    <div v-if="!isRegisterMode && !isResetMode" class="anim-in anim-d1">
+        <div class="login-form-wrap">
+            <div class="weui-form" style="margin:0;">
+                <div class="weui-form__text-area">
+                    <h2 class="weui-form__title">欢迎回来</h2>
+                </div>
+                <div class="weui-form__control-area">
+                    <div class="weui-cells weui-cells_form">
+                        <div class="weui-cell">
+                            <div class="weui-cell__hd"><label class="weui-label">QQ 号码</label></div>
+                            <div class="weui-cell__bd">
+                                <input class="weui-input" v-model="loginForm.qq"
+                                       placeholder="请输入 QQ 号" @keyup.enter="handleUserLogin" />
+                            </div>
+                        </div>
+                        <div class="weui-cell">
+                            <div class="weui-cell__hd"><label class="weui-label">密码</label></div>
+                            <div class="weui-cell__bd" style="display:flex;align-items:center;">
+                                <input class="weui-input" :type="showLoginPwd ? 'text' : 'password'" v-model="loginForm.password"
+                                       placeholder="请输入密码" @keyup.enter="handleUserLogin" style="flex:1;min-width:0;" />
+                                <span class="pwd-toggle" @click="showLoginPwd = !showLoginPwd" title="显示/隐藏密码">
+                                    <svg v-if="!showLoginPwd" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    <svg v-else viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px;margin:12px 16px 0;">
+                        <input type="checkbox" id="rememberMe" v-model="rememberLogin" style="accent-color:var(--weui-BRAND);width:16px;height:16px;cursor:pointer;" />
+                        <label for="rememberMe" style="font-size:13px;color:var(--text-secondary);cursor:pointer;user-select:none;">记住登录（30 天免登录）</label>
+                    </div>
+                </div>
+                <div class="weui-form__opr-area">
+                    <button class="weui-btn weui-btn_primary" @click="handleUserLogin">
+                        {{ loading ? '登录中...' : '登 录' }}
+                    </button>
+                </div>
+                <div class="weui-form__extra-area">
+                    <a href="javascript:;" style="color:var(--weui-LINK);" @click="isRegisterMode = true">注册新账号</a>
+                    &nbsp;&nbsp;&nbsp;
+                    <a href="javascript:;" style="color:var(--weui-LINK);" @click="isResetMode = true">忘记密码？</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 注册表单 ===== -->
+    <div v-else-if="isRegisterMode" class="anim-in anim-d1">
+        <div class="login-form-wrap">
+            <div class="weui-form" style="margin:0;">
+                <div class="weui-form__text-area">
+                    <h2 class="weui-form__title">创建账号</h2>
+                </div>
+                <div class="weui-form__control-area">
+                    <div class="weui-cells weui-cells_form">
+                        <div class="weui-cell">
+                            <div class="weui-cell__hd"><label class="weui-label">QQ 号码</label></div>
+                            <div class="weui-cell__bd">
+                                <input class="weui-input" v-model="registerForm.qq" placeholder="用于接收验证码" />
+                            </div>
+                        </div>
+                        <div class="weui-cell">
+                            <div class="weui-cell__hd"><label class="weui-label">设置密码</label></div>
+                            <div class="weui-cell__bd" style="display:flex;align-items:center;">
+                                <input class="weui-input" :type="showRegPwd ? 'text' : 'password'" v-model="registerForm.password" placeholder="6 ~ 32 位字符" style="flex:1;min-width:0;" />
+                                <span class="pwd-toggle" @click="showRegPwd = !showRegPwd" title="显示/隐藏密码">
+                                    <svg v-if="!showRegPwd" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    <svg v-else viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="weui-cell weui-vcode">
+                            <div class="weui-cell__hd"><label class="weui-label">验证码</label></div>
+                            <div class="weui-cell__bd">
+                                <input class="weui-input" v-model="registerForm.captcha" placeholder="收到的验证码" />
+                            </div>
+                            <div class="weui-cell__ft">
+                                <button class="weui-btn weui-btn_mini weui-btn_primary"
+                                        @click="sendCaptcha('register')"
+                                        :disabled="captchaTime > 0 || captchaLoading">
+                                    {{ captchaTime ? captchaTime + 's' : '发送' }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="weui-form__opr-area">
+                    <button class="weui-btn weui-btn_primary" @click="handleUserRegister"
+                            :style="{background:'#07C160'}">
+                        {{ loading ? '注册中...' : '注 册' }}
+                    </button>
+                </div>
+                <div class="weui-form__extra-area">
+                    <a href="javascript:;" style="color:var(--weui-LINK);" @click="isRegisterMode = false">返回登录</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 重置密码表单 ===== -->
+    <div v-else-if="isResetMode" class="anim-in anim-d1">
+        <div class="login-form-wrap">
+            <div class="weui-form" style="margin:0;">
+                <div class="weui-form__text-area">
+                    <h2 class="weui-form__title">重置密码</h2>
+                </div>
+                <div class="weui-form__control-area">
+                    <div class="weui-cells weui-cells_form">
+                        <div class="weui-cell">
+                            <div class="weui-cell__hd"><label class="weui-label">QQ 号码</label></div>
+                            <div class="weui-cell__bd">
+                                <input class="weui-input" v-model="resetForm.qq" placeholder="注册时使用的 QQ" />
+                            </div>
+                        </div>
+                        <div class="weui-cell">
+                            <div class="weui-cell__hd"><label class="weui-label">新密码</label></div>
+                            <div class="weui-cell__bd" style="display:flex;align-items:center;">
+                                <input class="weui-input" :type="showResetPwd ? 'text' : 'password'" v-model="resetForm.password" placeholder="6 ~ 32 位字符" style="flex:1;min-width:0;" />
+                                <span class="pwd-toggle" @click="showResetPwd = !showResetPwd" title="显示/隐藏密码">
+                                    <svg v-if="!showResetPwd" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    <svg v-else viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="weui-cell weui-vcode">
+                            <div class="weui-cell__hd"><label class="weui-label">验证码</label></div>
+                            <div class="weui-cell__bd">
+                                <input class="weui-input" v-model="resetForm.captcha" placeholder="收到的验证码" />
+                            </div>
+                            <div class="weui-cell__ft">
+                                <button class="weui-btn weui-btn_mini weui-btn_warn"
+                                        @click="sendCaptcha('reset_password')"
+                                        :disabled="captchaTime > 0 || captchaLoading">
+                                    {{ captchaTime ? captchaTime + 's' : '发送' }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="weui-form__opr-area">
+                    <button class="weui-btn weui-btn_warn" @click="handleResetPassword">
+                        {{ loading ? '处理中...' : '确认重置' }}
+                    </button>
+                </div>
+                <div class="weui-form__extra-area">
+                    <a href="javascript:;" style="color:var(--weui-LINK);" @click="isResetMode = false">返回登录</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /login-inner -->
+</div><!-- /login-page -->
+
+
+<!-- ==========================================================
+     已登录：主面板
+     ========================================================== -->
+<div v-else class="main-wrap">
+
+    <!-- 导航栏（WeUI 原生，含 Tab 切换 + 主题切换 + 退出） -->
+    <nav class="weui-navbar nav-enhanced anim-in">
+        <div class="weui-navbar__item" :class="{ 'weui-bar__item_on': activeTab === 'overview' }" @click="activeTab = 'overview'">
+            概览
+        </div>
+        <div class="weui-navbar__item" :class="{ 'weui-bar__item_on': activeTab === 'assets' }" @click="activeTab = 'assets'">
+            我的资产
+        </div>
+        <div class="weui-navbar__item" :class="{ 'weui-bar__item_on': activeTab === 'cdk' }" @click="activeTab = 'cdk'">
+            卡密中心
+        </div>
+        <div class="weui-navbar__item" :class="{ 'weui-bar__item_on': activeTab === 'settings' }" @click="activeTab = 'settings'">
+            账号设置
+        </div>
+        <!-- 右侧操作区 -->
+        <div class="weui-navbar__item" style="flex:none;width:auto;display:flex;align-items:center;gap:8px;padding-right:16px;">
+            <button class="theme-toggle-btn" @click="toggleTheme"
+                    :title="isDark ? '切换到日间模式' : '切换到夜间模式'">
+                <svg v-if="isDark" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                <svg v-else viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            </button>
+            <a href="javascript:;" class="weui-btn weui-btn_mini weui-btn_default" @click="confirmLogout" style="font-size:12px;">退出</a>
+        </div>
+    </nav>
+
+    <div class="main-content">
+
+        <!-- ======== 页签：概览 ======== -->
+        <template v-if="activeTab === 'overview'">
+
+        <!-- 用户信息面板（含头像+API Key） -->
+        <div class="weui-panel weui-panel_access anim-in anim-d1">
+
+            <!-- 用户资料卡片：头像 + 昵称 + QQ号 + 标签 -->
+            <div class="user-profile-card">
+                <div class="user-avatar-wrap">
+                    <!-- 加载中占位 -->
+                    <img v-if="qqAvatarUrl && avatarLoaded"
+                         :src="qqAvatarUrl" alt=""
+                         class="user-avatar"
+                         @error="onAvatarError" />
+                    <div v-else class="user-avatar avatar-loading"></div>
+                    <span class="avatar-status-dot"></span>
+                </div>
+                <span class="user-nickname">{{ userData.qq || '加载中...' }}</span>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:2px;">
+                    <span class="status-tag tag-vip" v-if="userData.status == '2'">VIP</span>
+                    <span class="status-tag tag-svip" v-if="userData.status == '3'">SVIP</span>
+                    <span class="status-tag tag-book" v-if="userData.status == '4'">书源用户</span>
+                    <span class="status-tag tag-banned" v-if="userData.status == '0'">已封禁</span>
+                    <span class="status-tag tag-normal" v-if="userData.status == '1'">正常</span>
+                    <span v-if="userData.created_at" style="font-size:12px;color:var(--text-secondary);line-height:24px;padding:2px 10px;border-radius:999px;background:var(--custom-bg-icon-2);">
+                        注册于 {{ userData.created_at }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- API Key 行 -->
+            <div class="weui-media-box weui-media-box_appmsg" @click="copyToken" style="cursor:pointer;">
+                <div class="weui-media-box__hd">
+                    <span class="asset-icon-wrap">
+                        <!-- SVG 钥匙图标 -->
+                        <svg class="icon-stroke" viewBox="0 0 24 24">
+                            <circle cx="7.5" cy="15.5" r="5.5"/>
+                            <path d="M11.5 15.5h10M20 15.5V12M16 12l-3-3m0 0l3 3"/>
+                        </svg>
+                    </span>
+                </div>
+                <div class="weui-media-box__bd">
+                    <h4 class="weui-media-box__title">API Key</h4>
+                    <p class="weui-media-box__desc">{{ userData.api_key ? '点击复制' : '加载中...' }}</p>
+                </div>
+                <div class="weui-cell__ft">&rsaquo;</div>
+            </div>
+
+            <!-- Token 详情 -->
+            <div style="position:relative;">
+                <div class="token-box" style="font-family:monospace,ui-monospace;padding-right:40px;word-break:break-all;">
+                    <template v-if="userData.api_key">
+                        <!-- 隐藏模式：只显示前后几位，中间用圆点代替 -->
+                        <span v-if="!showApiKey">{{ userData.api_key.slice(0, 6) }}{{ '●'.repeat(Math.min(userData.api_key.length - 12, 16)) }}{{ userData.api_key.slice(-4) }}</span>
+                        <!-- 显示模式：完整明文 -->
+                        <span v-else>{{ userData.api_key }}</span>
+                    </template>
+                    <template v-else>加载中...</template>
+                </div>
+                <!-- 显隐切换按钮（悬浮在右上角） -->
+                <button v-if="userData.api_key"
+                        @click.stop="showApiKey = !showApiKey"
+                        class="pwd-toggle"
+                        :title="showApiKey ? '隐藏 Key' : '显示 Key'"
+                        style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--custom-bg-icon-2);border-radius:6px;padding:4px;">
+                    <svg v-if="!showApiKey" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg v-else viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                </button>
+            </div>
+            <span class="token-hint">外部 API 调用凭证，请妥善保管</span>
+            <div style="padding:0 16px 12px;text-align:right;">
+                <button class="weui-btn weui-btn_mini weui-btn_default" @click="regenOwnToken"
+                        style="font-size:12px;">
+                    <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px;margin-right:2px;">
+                        <path d="M21 2v6h-6M3 22v-6h6M8.7 15.3L21 3M3 21l11.3-11.3"/>
+                    </svg> 重新生成
+                </button>
+            </div>
+        </div>
+
+
+        <!-- ===== 用量统计概览 ===== -->
+        <div class="weui-panel anim-in anim-d1" style="margin-top:16px;">
+            <div class="weui-panel__hd" style="display:flex;align-items:center;gap:8px;">
+                <span class="panel-icon-svg" style="background:var(--weui-BRAND,#07C160);">
+                    <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 9l-5 5-4-4-3 3"/></svg>
+                </span>
+                <span style="font-size:14px;color:var(--text-secondary);">用量概览</span>
+            </div>
+            <div style="padding:12px 16px 16px;">
+                <template v-if="usageStats.length > 0">
+                    <div class="usage-bar-wrap" v-for="(item, idx) in usageStats" :key="idx">
+                        <div class="usage-bar-header">
+                            <span class="usage-bar-name">{{ item.api_name }}</span>
+                            <span class="usage-bar-num">已用 <b>{{ item.used }}</b> / {{ item.max }} 次</span>
+                        </div>
+                        <div class="usage-bar-track">
+                            <div class="usage-bar-fill"
+                                 :class="{ warn: item.percent >= 70, danger: item.percent >= 90 }"
+                                 :style="{ width: Math.min(item.percent, 100) + '%' }"></div>
+                        </div>
+                    </div>
+                    <div class="usage-total">
+                        <span>总已用: <b>{{ totalUsed }}</b> 次</span>
+                        <span>总计上限: <b>{{ totalMax }}</b> 次</span>
+                    </div>
+                </template>
+                <div v-else class="empty-state" style="padding:20px 0;">
+                    <p class="empty-desc">暂无接口数据</p>
+                </div>
+            </div>
+        </div>
+
+        </template><!-- /概览 -->
+
+        <!-- ======== 页签：我的资产 ======== -->
+        <template v-if="activeTab === 'assets'">
+
+            <!-- 接口资产 -->
+            <div class="weui-panel weui-panel_access anim-in anim-d1" style="margin-top:16px;">
+                <div class="weui-panel__hd" style="display:flex;align-items:center;gap:8px;">
+                    <span class="panel-icon-svg panel-icon-assets">
+                        <!-- SVG API 图标 -->
+                        <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="15" x2="12" y2="15"/></svg>
+                    </span>
+                    <span style="font-size:14px;color:var(--text-secondary);">接口资产</span>
+                </div>
+
+                <template v-if="userData.assets && userData.assets.length > 0">
+                    <div class="weui-media-box weui-media-box_appmsg" v-for="(item, idx) in userData.assets" :key="idx">
+                        <div class="weui-media-box__hd">
+                            <span class="asset-icon-wrap">
+                                <!-- SVG 搜索/接口图标 -->
+                                <svg class="icon-stroke" viewBox="0 0 24 24">
+                                    <circle cx="11" cy="11" r="7"/>
+                                    <path d="M21 21l-4.35-4.35"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="weui-media-box__bd">
+                            <h4 class="weui-media-box__title" style="display:flex;align-items:center;gap:8px;">
+                                {{ item.api_name || '未知接口' }}
+                                <span v-if="!item.has_permission" class="status-tag tag-banned" style="border-radius:4px;padding:1px 8px;">禁用</span>
+                            </h4>
+                            <p class="weui-media-box__desc" style="display:flex;gap:16px;">
+                                <span>每日余额 <b>{{ item.daily_limit }}</b></span>
+                                <span>储备余额 <b>{{ item.extra_balance }}</b></span>
+                            </p>
+                        </div>
+                    </div>
+                </template>
+
+                <div v-else class="empty-state">
+                    <div class="empty-icon">
+                        <!-- SVG 盒子空状态图标 -->
+                        <svg viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <line x1="8" y1="12" x2="16" y2="12"/>
+                        </svg>
+                    </div>
+                    <div class="empty-title">暂无可用接口资产</div>
+                    <div class="empty-desc">如有卡密请在右侧兑换</div>
+                </div>
+            </div>
+
+        </template><!-- /我的资产 -->
+
+        <!-- ======== 页签：卡密中心 ======== -->
+        <template v-if="activeTab === 'cdk'">
+
+        <div class="weui-panel anim-in anim-d1" style="margin-top:16px;">
+            <!-- 卡密兑换 -->
+            <div class="weui-panel anim-in anim-d3">
+                <div class="weui-panel__hd" style="display:flex;align-items:center;gap:8px;">
+                    <span class="panel-icon-svg panel-icon-cdk">
+                        <!-- SVG 礼物/兑换图标 -->
+                        <svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+                    </span>
+                    <span style="font-size:14px;color:var(--text-secondary);">卡密兑换</span>
+                </div>
+
+                <div class="cdk-area">
+                    <div class="cdk-input-wrap">
+                        <div class="cdk-field">
+                            <div class="weui-cells weui-cells_form" style="margin-top:0;">
+                                <div class="weui-cell">
+                                    <div class="weui-cell__bd">
+                                        <input class="weui-input" v-model="cdkInput" placeholder="请输入 CDK 卡密" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="weui-btn weui-btn_primary" @click="useCDK" style="white-space:nowrap;">兑 换</button>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /卡密面板 -->
+
+        </template><!-- /卡密中心 -->
+
+        <!-- ======== 页签：账号设置 ======== -->
+        <template v-if="activeTab === 'settings'">
+
+        <!-- 修改密码面板 -->
+        <div class="weui-panel anim-in anim-d1" style="margin-top:16px;">
+            <div class="weui-panel__hd" style="display:flex;align-items:center;gap:8px;">
+                <span class="panel-icon-svg" style="background:var(--icon-blue-bg);">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                </span>
+                <span style="font-size:14px;color:var(--text-secondary);">修改密码</span>
+            </div>
+            <div style="padding:12px 16px 18px;">
+                <div class="weui-cells weui-cells_form" style="margin:0;">
+                    <div class="weui-cell">
+                        <div class="weui-cell__hd"><label class="weui-label">当前密码</label></div>
+                        <div class="weui-cell__bd" style="display:flex;align-items:center;">
+                            <input class="weui-input" :type="showChangePwdOld ? 'text' : 'password'" v-model="changePwdForm.old_password"
+                                   placeholder="请输入当前密码" style="flex:1;min-width:0;" @keyup.enter="handleChangePassword" />
+                            <span class="pwd-toggle" @click="showChangePwdOld = !showChangePwdOld" title="显示/隐藏">
+                                <svg v-if="!showChangePwdOld" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                                <svg v-else viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="weui-cell">
+                        <div class="weui-cell__hd"><label class="weui-label">新密码</label></div>
+                        <div class="weui-cell__bd" style="display:flex;align-items:center;">
+                            <input class="weui-input" :type="showChangePwdNew ? 'text' : 'password'" v-model="changePwdForm.new_password"
+                                   placeholder="6 ~ 32 位字符" style="flex:1;min-width:0;" />
+                            <span class="pwd-toggle" @click="showChangePwdNew = !showChangePwdNew" title="显示/隐藏">
+                                <svg v-if="!showChangePwdNew" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                                <svg v-else viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <button class="weui-btn weui-btn_primary" style="width:100%;margin-top:10px;" @click="handleChangePassword"
+                        :disabled="changingPwd">
+                    {{ changingPwd ? '修改中...' : '确认修改密码' }}
+                </button>
+            </div>
+        </div>
+
+        </template><!-- /账号设置 -->
+
+    </div><!-- /main-content -->
+
+    <!-- 底部版权 -->
+    <div class="weui-footer" style="padding-top:24px;">
+        <p class="weui-footer__links">
+            <a href="javascript:;" class="weui-footer__link">API 文档</a>
+        </p>
+        <p class="weui-footer__text">Copyright &copy; 2026 xi~ API</p>
+    </div>
+
+</div>
+
+
+
+<script>
+const { createApp, ref, reactive, computed, onMounted } = Vue;
+
+// ========== 主题系统 ==========
+const THEME_KEY = 'user_theme_pref';
+const isDark = ref(false);
+let _systemFollow = true; // 是否跟随系统（用户手动切换后变为 false）
+// 密码显示/隐藏状态
+const showLoginPwd  = ref(false);
+const showRegPwd    = ref(false);
+const showResetPwd  = ref(false);
+const showChangePwdOld  = ref(false);
+const showChangePwdNew  = ref(false);
+const showApiKey        = ref(false); // API Key 显隐切换
+
+// 页签导航（概览/资产/卡密/设置）
+const activeTab = ref('overview');
+
+const applyTheme = (dark) => {
+    isDark.value = dark;
+    document.body.setAttribute('data-weui-theme', dark ? 'dark' : 'light');
+};
+
+const toggleTheme = () => {
+    _systemFollow = false; // 用户主动选择后，停止跟随系统
+    const next = !isDark.value;
+    applyTheme(next);
+    localStorage.setItem(THEME_KEY, next ? 'dark' : 'light');
+};
+
+const initTheme = () => {
+    // 先注册系统监听器（在任何主题应用之前）
+    if (window.matchMedia) {
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        mq.addEventListener('change', (e) => {
+            // 仅在"跟随系统"模式下自动切换
+            if (_systemFollow) {
+                applyTheme(e.matches);
+            }
+        });
+    }
+
+    // 确定初始主题
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved === 'dark') {
+        _systemFollow = false; // 用户之前手动选过，不跟随系统
+        applyTheme(true);
+    } else if (saved === 'light') {
+        _systemFollow = false;
+        applyTheme(false);
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // 首次访问：跟随系统暗色
+        applyTheme(true);
+    } else {
+        // 首次访问：跟随系统亮色
+        applyTheme(false);
+    }
+};
+
+
+// ========== 状态 ==========
+const token       = ref(localStorage.getItem('user_token') || '');
+const isLoggedIn  = ref(!!token.value);
+const loading     = ref(false);
+const cdkLoading  = ref(false);
+const cdkInput    = ref('');
+const isRegisterMode = ref(false);
+const isResetMode  = ref(false);
+
+const loginForm    = reactive({ qq: '', password: '' });
+const rememberLogin = ref(false);
+const registerForm = reactive({ qq: '', password: '', captcha: '' });
+const resetForm    = reactive({ qq: '', password: '', captcha: '' });
+const changePwdForm = reactive({ old_password: '', new_password: '' });
+const changingPwd  = ref(false);
+
+const userData = reactive({
+    qq: '', api_key: '', status: '1', created_at: '', assets: [],
+});
+
+// QQ 头像
+const qqAvatarUrl  = ref('');
+const avatarLoaded = ref(false);
+
+const captchaLoading = ref(false);
+const captchaTime    = ref(0);
+let captchaTimer = null;
+
+const statusText = computed(() => ({
+    '0': '已封禁', '1': '正常', '2': 'VIP', '3': 'SVIP', '4': '书源用户'
+})[userData.status] || '未知');
+
+// 用量统计：根据 max_daily_limit - daily_limit 算出已用
+const usageStats = computed(() => {
+    if (!userData.assets || !userData.assets.length) return [];
+    return userData.assets
+        .filter(a => a.has_permission && a.max_daily_limit > 0)
+        .map(a => {
+            const used = a.max_daily_limit - a.daily_limit;
+            const percent = Math.round((used / a.max_daily_limit) * 100);
+            return { api_name: a.api_name, used, max: a.max_daily_limit, remaining: a.daily_limit, extra: a.extra_balance, percent };
+        })
+        .sort((a, b) => b.percent - a.percent); // 使用率高的排前面
+});
+const totalUsed = computed(() => usageStats.value.reduce((s, i) => s + i.used, 0));
+const totalMax  = computed(() => usageStats.value.reduce((s, i) => s + i.max, 0));
+
+
+// ========== Toast (weui.js 官方组件) ==========
+const toast = (msg, duration = 2000) => {
+    weui.toast(msg, { duration: duration });
+};
+
+
+// ========== Axios ==========
+const axiosInstance = axios.create({ baseURL: '', timeout: 15000 });
+axiosInstance.interceptors.request.use(c => {
+    if (token.value) c.headers['X-Session-Token'] = token.value;
+    return c;
+});
+
+
+// ========== QQ 头像 & 昵称获取 ==========
+// 头像 URL 构建函数
+const getQqAvatarUrl = (qqNum) => {
+    if (!qqNum) return '';
+    // spec=640 表示 640x640 高清头像，img_type=jpg 返回 jpg 格式
+    return `http://q.qlogo.cn/headimg_dl?dst_uin=${qqNum}&spec=640&img_type=jpg`;
+};
+
+// 加载头像（预加载检测）
+const preloadAvatar = (url) => {
+    if (!url) return;
+    const img = new Image();
+    img.onload = () => { avatarLoaded.value = true; };
+    img.onerror = () => { avatarLoaded.value = false; };
+    img.src = url;
+};
+
+const onAvatarError = () => {
+    avatarLoaded.value = false;
+};
+
+
+// ========== API ==========
+const fetchUserInfo = async () => {
+    try {
+        const res = await axiosInstance.get('/api/user/me');
+        Object.assign(userData, res.data.data || res.data);
+
+        // 获取完用户信息后，拉取 QQ 头像
+        if (userData.qq) {
+            qqAvatarUrl.value = getQqAvatarUrl(userData.qq);
+            preloadAvatar(qqAvatarUrl.value);
+        }
+    } catch (_) {
+        isLoggedIn.value = false;
+        localStorage.removeItem('user_token');
+    }
+};
+
+const handleUserLogin = async () => {
+    if (!loginForm.qq || !loginForm.password) return toast('请填写完整');
+    loading.value = true;
+    try {
+        const res = await axios.post('/api/user/login', { ...loginForm, remember: rememberLogin.value });
+        const sessionTok = res.data.data?.session_token || '';
+        if (!sessionTok) throw new Error('no session_token');
+        token.value = sessionTok;
+        localStorage.setItem('user_token', sessionTok);
+        toast('登录成功');
+        isLoggedIn.value = true;
+        await fetchUserInfo();
+    } catch (e) {
+        toast(e.response?.data?.msg || e.message || '登录失败');
+    } finally { loading.value = false; }
+};
+
+const handleUserRegister = async () => {
+    const f = registerForm;
+    if (!f.qq || !f.password || !f.captcha) return toast('请填写完整');
+    if (f.password.length < 6 || f.password.length > 32) return toast('密码需6-32位');
+    loading.value = true;
+    try {
+        const res = await axios.post('/api/user/register', { qq: f.qq, password: f.password, captcha: f.captcha });
+        const sessionTok = res.data.data?.session_token || '';
+        if (!sessionTok) throw new Error('no session_token');
+        token.value = sessionTok;
+        localStorage.setItem('user_token', sessionTok);
+        toast('注册成功');
+        isLoggedIn.value = true;
+        isRegisterMode.value = false;
+        await fetchUserInfo();
+    } catch (e) {
+        toast(e.response?.data?.msg || e.message || '注册失败');
+    } finally { loading.value = false; }
+};
+
+const sendCaptcha = async actionType => {
+    const targetQQ = isRegisterMode.value ? registerForm.qq : resetForm.qq;
+    if (!targetQQ) return toast('请先输入 QQ 号');
+    captchaLoading.value = true;
+    try {
+        const res = await axios.post('/api/send_captcha', { qq: targetQQ, action: actionType });
+        toast(res.data.msg || '验证码已发送');
+        captchaTime.value = 60;
+        if (captchaTimer) clearInterval(captchaTimer);
+        captchaTimer = setInterval(() => { if (--captchaTime.value <= 0) clearInterval(captchaTimer); }, 1000);
+    } catch (e) {
+        toast(e.response?.data?.msg || '发送失败');
+    } finally { captchaLoading.value = false; }
+};
+
+const handleResetPassword = async () => {
+    const f = resetForm;
+    if (!f.qq || !f.password || !f.captcha) return toast('请填写完整');
+    if (f.password.length < 6 || f.password.length > 32) return toast('密码需6-32位');
+    loading.value = true;
+    try {
+        await axios.post('/api/user/reset_password', { qq: f.qq, captcha: f.captcha, new_password: f.password });
+        toast('重置成功，请重新登录');
+        isResetMode.value = false;
+        loginForm.password = resetForm.password = resetForm.captcha = '';
+    } catch (e) {
+        toast(e.response?.data?.msg || e.message || '重置失败');
+    } finally { loading.value = false; }
+};
+
+const handleChangePassword = async () => {
+    const f = changePwdForm;
+    if (!f.old_password) return toast('请输入当前密码');
+    if (!f.new_password) return toast('请输入新密码');
+    if (f.new_password.length < 6 || f.new_password.length > 32) return toast('新密码需6-32位');
+    changingPwd.value = true;
+    try {
+        await axiosInstance.post('/api/user/change-password', {
+            old_password: f.old_password,
+            new_password: f.new_password,
+        });
+        toast('密码修改成功');
+        changePwdForm.old_password = '';
+        changePwdForm.new_password = '';
+    } catch (e) {
+        toast(e.response?.data?.msg || e.message || '修改失败');
+    } finally { changingPwd.value = false; }
+};
+
+const useCDK = async () => {
+    if (!cdkInput.value.trim()) return toast('请输入卡密');
+    cdkLoading.value = true;
+    try {
+        const res = await axiosInstance.post('/api/user_use_cdk', { cdk: cdkInput.value.trim() });
+        toast(res.data.msg || '兑换成功');
+        cdkInput.value = '';
+        await fetchUserInfo();
+    } catch (e) {
+        toast(e.response?.data?.msg || e.message || '兑换失败');
+    } finally { cdkLoading.value = false; }
+};
+
+const copyToken = async () => {
+    const text = userData.api_key;
+    if (!text) return toast('未获取到 API Key');
+    let ok = false;
+    if (navigator.clipboard && window.isSecureContext) {
+        try { await navigator.clipboard.writeText(text); ok = true; }
+        catch (_) {}
+    }
+    if (!ok) {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0;';
+        ta.setAttribute('readonly', ''); document.body.appendChild(ta);
+        ta.select(); ta.setSelectionRange(0, text.length);
+        ok = document.execCommand('copy'); document.body.removeChild(ta);
+        if (!ok) return toast('复制失败，请手动选择复制');
+    }
+    toast('已复制到剪贴板');
+};
+
+const regenOwnToken = () => {
+    weui.confirm(
+        '确定要重新生成你的 API Token 吗？\n\n旧 Token 将立即失效，所有使用旧 Token 的请求将被拒绝。新 Token 将自动替换显示。',
+        function() {
+            axiosInstance.post('/api/user/regen_token', {})
+                .then(function(res) {
+                    var newTok = res.data.data && res.data.data.new_token;
+                    if (newTok) {
+                        userData.api_key = newTok;
+                        weui.alert(
+                            '<div style="text-align:left;padding:4px 0;">' +
+                            '<p style="font-size:13px;color:#666;margin-bottom:8px;">新 Token（请妥善保存）：</p>' +
+                            '<div id="new-token-display" style="word-break:break-all;font-family:monospace;font-size:12px;background:#f5f5f5;padding:10px;border-radius:6px;cursor:pointer;color:#07C160;" onclick="navigator.clipboard.writeText(this.textContent).then(function(){this.style.color=\'#81c784\';this.textContent=\'已复制到剪贴板\'});">' + newTok + '</div>' +
+                            '</div>',
+                            { title: 'API Token 已重置' }
+                        );
+                    } else {
+                        toast('重置成功');
+                        fetchUserInfo();
+                    }
+                })
+                .catch(function(e) {
+                    toast(e.response?.data?.msg || e.message || '重置失败');
+                });
+        },
+        function(){},
+        { title: '重置确认' }
+    );
+};
+
+// ========== 退出确认（weui.js confirm）==========
+const confirmLogout = () => {
+    weui.confirm('确定要退出当前账号吗？', function(){
+        localStorage.removeItem('user_token');
+        isLoggedIn.value = false;
+        token.value = '';
+        // 清理 QQ 头像
+        qqAvatarUrl.value = '';
+        avatarLoaded.value = false;
+    }, function(){
+        // 取消 -> 无操作
+    }, {
+        title: '退出登录'
+    });
+};
+
+
+// ========== Vue App ==========
+createApp({
+    setup() {
+        onMounted(async () => {
+            initTheme();
+            if (isLoggedIn.value) await fetchUserInfo();
+        });
+        return {
+            isLoggedIn, isRegisterMode, isResetMode,
+            loading, cdkLoading, captchaLoading, captchaTime,
+            loginForm, registerForm, resetForm,
+            userData, statusText, cdkInput,
+            changePwdForm, changingPwd,
+            isDark,
+            showLoginPwd, showRegPwd, showResetPwd,
+            showChangePwdOld, showChangePwdNew,
+            showApiKey,
+            qqAvatarUrl, avatarLoaded,
+            handleUserLogin, handleUserRegister,
+            sendCaptcha, handleResetPassword,
+            handleChangePassword,
+            useCDK, confirmLogout, copyToken, regenOwnToken,
+            toggleTheme, onAvatarError,
+            usageStats, totalUsed, totalMax,
+            rememberLogin,
+            activeTab,
+        };
+    }
+}).mount('body');
+</script>
+</body>
+</html>

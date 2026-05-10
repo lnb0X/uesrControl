@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>管理控制台 - xi~ API</title>
+    <!-- WeUI CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/weui@2.4.4/dist/style/weui.min.css">
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <!-- Axios -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <!-- WeUI JS (toast/alert/dialog/actionsheet 等) -->
+    <script src="https://unpkg.com/weui.js/dist/weui.min.js"></script>
+
+<style>
+/* ============================================
+   全局基础 & CSS 变量（与 user_dashboard 完全一致）
+   ============================================ */
+html, body { height: 100%; background-color: var(--global-BG); color: var(--global-FG); transition: background .3s, color .3s; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --global-BG: #ededed; --global-FG: #000;
+    --custom-bg-card: #fff; --custom-bg-elevated: #f7f8fa;
+    --custom-bg-token: #f7f8fa; --custom-border-token: #d9d9d9;
+    --custom-bg-icon: #e8f5e9; --custom-bg-icon-2: #f0f0f0;
+    --custom-shadow-card: 0 2px 10px rgba(0,0,0,.05); --custom-shadow-lg: 0 4px 20px rgba(0,0,0,.08);
+    --text-primary: #111; --text-secondary: #888; --text-hint: #b2b2b2;
+    --tag-normal-bg: #e8f5e9; --tag-normal-fg: #2e7d32;
+    --tag-vip-bg: linear-gradient(135deg,#F5D479,#E5B84C); --tag-vip-fg: #8B6914;
+    --tag-svip-bg: linear-gradient(135deg,#2C2C2E,#000); --tag-svip-fg: #C9A227;
+    --tag-book-bg: linear-gradient(135deg,#5AC8FA,#007AFF); --tag-book-fg: #fff;
+    --tag-banned-bg: #fce4ec; --tag-banned-fg: #c62828;
+    --brand-color: #07C160; --brand-dark: #06AD56;
+    --icon-blue-bg: #576b95; --icon-brand-bg: #07C160; --icon-orange-bg: #FA9D3B;
+    background-color: var(--global-BG); color: var(--global-FG);
+    padding: 16px;
+}
+/* ---- 暗色模式 ---- */
+body[data-weui-theme="dark"] {
+    --global-BG: #111; --global-FG: #e5e5e5;
+    --custom-bg-card: #1c1c1e; --custom-bg-elevated: #2c2c2e;
+    --custom-bg-token: #1c1c1e; --custom-border-token: rgba(255,255,255,.1);
+    --custom-bg-icon: rgba(7,193,96,.15); --custom-bg-icon-2: rgba(255,255,255,.08);
+    --custom-shadow-card: 0 2px 12px rgba(0,0,0,.35); --custom-shadow-lg: 0 4px 24px rgba(0,0,0,.45);
+    --text-primary: #e5e5e5; --text-secondary: #999; --text-hint: #666;
+    --tag-normal-bg: rgba(46,125,50,.25); --tag-normal-fg: #81c784;
+    --tag-vip-bg: linear-gradient(135deg,#6b5a30,#5a4a20); --tag-vip-fg: #d4c57a;
+    --tag-svip-bg: linear-gradient(135deg,#3a3a3c,#1c1c1e); --tag-svip-fg: #C9A227;
+    --tag-book-bg: linear-gradient(135deg,#1a4a6b,#004080); --tag-book-fg: #90caf9;
+    --tag-banned-bg: rgba(198,40,40,.2); --tag-banned-fg: #ef5350;
+    --brand-color: #06AD56; --icon-brand-bg: #06AD56;
+}
+
+/* 暗色模式：WeUI 组件强制覆盖 */
+body[data-weui-theme="dark"] { background-color: #111 !important; color: #e5e5e5 !important; }
+body[data-weui-theme="dark"] .weui-cells,
+body[data-weui-theme="dark"] .weui-cells_form { background-color: #1c1c1e; }
+body[data-weui-theme="dark"] .weui-cell { background-color: #1c1c1e; }
+body[data-weui-theme="dark"] .weui-cell:before { border-top-color: rgba(255,255,255,.08) !important; }
+body[data-weui-theme="dark"] .weui-input,
+body[data-weui-theme="dark"] .weui-textarea { background-color: #2c2c2e; color: #e5e5e5; }
+body[data-weui-theme="dark"] .weui-label { color: #999; }
+body[data-weui-theme="dark"] .weui-form__title,
+body[data-weui-theme="dark"] .weui-panel__hd { color: #e5e5e5; }
+body[data-weui-theme="dark"] .weui-btn_primary { background-color: #06AD56 !important; }
+body[data-weui-theme="dark"] .weui-btn_default { background-color: #2c2c2e; color: #e5e5e5; border-color: rgba(255,255,255,.15); }
+body[data-weui-theme="dark"] .weui-panel { background-color: #1c1c1e; }
+body[data-weui-theme="dark"] input::placeholder,
+body[data-weui-theme="dark"] textarea::placeholder { color: #555; }
+
+/* ============================================
+   登录页
+   ============================================ */
+.login-page { min-height: 100vh; display: grid; place-items: center; }
+.login-inner { width: 100%; max-width: 420px; }
+.login-brand { text-align: center; padding-bottom: 20px; }
+.login-brand-logo {
+    width: 64px; height: 64px; border-radius: 18px;
+    background: linear-gradient(135deg,var(--brand-color),var(--brand-dark));
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: 14px; box-shadow: 0 4px 16px rgba(7,193,96,.28);
+}
+.login-brand-logo svg { width: 32px; height: 32px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.login-brand h1 { font-size: 22px; font-weight: 600; color: var(--text-primary); letter-spacing: -.5px; }
+.login-brand p { font-size: 13px; color: var(--text-secondary); margin-top: 6px; }
+
+.login-form-wrap {
+    width: 100%; max-width: 420px;
+    background: var(--custom-bg-card); border-radius: 14px;
+    box-shadow: var(--custom-shadow-card); overflow: hidden;
+}
+
+/* ============================================
+   主面板 & Header & 导航栏
+   ============================================ */
+.header {
+    background: var(--custom-bg-card); padding: 0 16px; height: 52px;
+    display: flex; align-items: center; justify-content: space-between;
+    border: 1px solid var(--custom-border-token,#eee); border-radius: 12px;
+    margin-bottom: 12px; box-shadow: var(--custom-shadow-card);
+    transition: background .3s, border-color .3s;
+}
+.main-content { max-width: 1400px; margin: 0 auto; }
+
+.nav-enhanced { position: sticky; top: 0; z-index: 10; background: var(--global-BG); transition: background .3s; margin-bottom: 12px; }
+
+/* ============================================
+   状态标签（与用户端统一）
+   ============================================ */
+.status-tag { display:inline-block; padding:3px 12px; border-radius:999px; font-size:13px; font-weight:600; line-height:1.6; }
+.tag-normal   { background:var(--tag-normal-bg);   color:var(--tag-normal-fg);   }
+.tag-vip      { background:var(--tag-vip-bg);      color:var(--tag-vip-fg);      }
+.tag-svip     { background:var(--tag-svip-bg);     color:var(--tag-svip-fg);     }
+.tag-book     { background:var(--tag-book-bg);     color:var(--tag-book-fg);     }
+.tag-banned   { background:var(--tag-banned-bg);   color:var(--tag-banned-fg);   }
+
+/* ============================================
+   主题切换按钮
+   ============================================ */
+.theme-toggle-btn {
+    width:34px; height:34px; border-radius:50%; border:none; cursor:pointer;
+    display:inline-flex; align-items:center; justify-content:center;
+    background:var(--custom-bg-elevated); color:var(--text-primary);
+    transition:transform .2s,background .2s;
+}
+.theme-toggle-btn:hover{ transform:scale(1.08); }
+.theme-toggle-btn:active{ transform:scale(.95); }
+.theme-toggle-btn svg{ width:18px;height:18px;fill:currentColor; }
+
+/* 密码眼睛按钮 */
+.pwd-toggle{
+    display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:8px;
+    cursor:pointer;width:32px;height:32px;border-radius:6px;color:var(--text-hint);transition:color .2s,background .2s;
+}
+.pwd-toggle:hover,.pwd-toggle:active{ color:var(--text-secondary);background:var(--custom-bg-elevated); }
+.pwd-toggle svg{ width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round; }
+
+/* ============================================
+   数据表格（WeUI 风格）
+   ============================================ */
+.data-table { width:100%; border-collapse:collapse; font-size:13px; background:var(--custom-bg-card); border-radius:10px; overflow:hidden; box-shadow:var(--custom-shadow-card); }
+.data-table thead th {
+    background:var(--custom-bg-elevated); color:var(--text-secondary);
+    padding:10px 12px; text-align:left; font-weight:500;
+    border-bottom:1px solid var(--custom-border-token); font-size:12px; white-space:nowrap;
+}
+.data-table tbody td {
+    padding:10px 12px; border-bottom:1px solid var(--custom-border-token);
+    vertical-align:middle; word-break:break-all;
+}
+.data-table tbody tr:hover td{ background:var(--custom-bg-elevated); }
+.data-table tbody tr:last-child td{ border-bottom:none; }
+.expand-row{ background:var(--custom-bg-elevated); }
+.expand-row td{ padding:12px 24px !important; }
+.expand-inner-table{ width:100%; border-collapse:collapse; font-size:12px; }
+.expand-inner-table th,.expand-inner-table td{ padding:6px 10px; border-bottom:1px solid var(--custom-border-token); }
+.expand-inner-table th{ background:var(--custom-bg-card); color:var(--text-secondary); white-space:nowrap; }
+
+/* 操作按钮行 */
+.action-bar{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+
+/* 分页 */
+.pagination-wrap{ display:flex; justify-content:flex-end; align-items:center; gap:8px; margin-top:14px; }
+.page-btn{
+    min-width:32px; height:32px; border:1px solid var(--custom-border-token); border-radius:6px;
+    background:var(--custom-bg-card); color:var(--text-primary); font-size:13px;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:background .15s,color .15s; padding:0 8px; user-select:none;
+}
+.page-btn:hover{ background:var(--custom-bg-elevated); }
+.page-btn.active{ background:var(--brand-color); color:#fff; border-color:var(--brand-color); }
+.page-btn.disabled{ opacity:.4; cursor:not-allowed; }
+.page-info{ font-size:12px; color:var(--text-secondary); }
+.page-sizes{ font-size:12px; color:var(--text-secondary); }
+.page-sizes select{
+    padding:2px 6px; border:1px solid var(--custom-border-token); border-radius:4px;
+    background:var(--custom-bg-card); color:var(--text-primary); font-size:12px;
+}
+
+/* ============================================
+   面板标题图标（与用户端统一）
+   ============================================ */
+.panel-icon-svg{ display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;flex-shrink:0; }
+.panel-icon-user{ background:var(--icon-blue-bg); }
+.panel-icon-assets{ background:var(--icon-brand-bg); }
+.panel-icon-cdk{ background:var(--icon-orange-bg); }
+.panel-icon-settings{ background:var(--icon-blue-bg); }
+.panel-icon-svg svg{ width:14px;height:14px;fill:#fff; }
+
+/* 卡密展示区 */
+.cdk-display-box{
+    background:var(--custom-bg-card); border:2px dashed var(--brand-color);
+    padding:16px; border-radius:10px; font-family:'Consolas','Roboto Mono',monospace;
+    font-size:15px; word-break:break-all; color:var(--text-primary);
+    box-shadow:inset 0 0 12px rgba(7,193,96,.04);
+}
+
+/* 配置页两列网格 */
+.config-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+@media(max-width:1023px){ .config-grid{ grid-template-columns:1fr; } }
+
+/* 描述列表 */
+.desc-list{ list-style:none; }
+.desc-item{ display:flex; padding:10px 0; border-bottom:1px solid var(--custom-border-token); font-size:13px; }
+.desc-item:last-child{ border-bottom:none; }
+.desc-label{ width:110px; flex-shrink:0; color:var(--text-secondary); }
+.desc-value{ color:var(--text-primary); word-break:break-all; }
+
+/* 开关样式 */
+.toggle-switch{
+    position:relative; display:inline-block; width:48px;height:26px; vertical-align:middle;
+}
+.toggle-switch input{ opacity:0;width:0;height:0;}
+.toggle-slider{
+    position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;
+    background-color:#ccc; transition:.3s; border-radius:26px;
+}
+.toggle-slider:before{
+    position:absolute;content:"";height:20px;width:20px;left:3px;bottom:3px;
+    background:white;transition:.3s;border-radius:50%;
+}
+.toggle-switch input:checked + .toggle-slider{ background-color:var(--brand-color); }
+.toggle-switch input:checked + .toggle-slider:before{ transform:translateX(22px); }
+
+/* 单选组样式 */
+.radio-group{ display:flex; gap:12px; flex-wrap:wrap; }
+.radio-item{
+    display:flex; align-items:center; gap:4px; cursor:pointer; font-size:14px; color:var(--text-primary);
+}
+.radio-dot{
+    width:18px;height:18px; border:2px solid #ccc; border-radius:50%;
+    display:flex;align-items:center;justify-content:center; transition:border-color .2s; flex-shrink:0;
+}
+.radio-dot.active{ border-color:var(--brand-color); }
+.radio-dot.active::after{
+    content:''; width:10px;height:10px; background:var(--brand-color); border-radius:50%;
+}
+.radio-item:hover .radio-dot{ border-color:var(--brand-color); opacity:.7; }
+
+/* 下拉菜单（通用） */
+.w-select{
+    appearance:none; -webkit-appearance:none;
+    width:100%; height:44px; padding:0 32px 0 12px;
+    border:1px solid var(--custom-border-token); border-radius:8px;
+    background:var(--custom-bg-elevated) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%23999'/%3E%3C/svg%3E") no-repeat right 12px center;
+    font-size:14px; color:var(--text-primary); outline:none; cursor:pointer;
+}
+.w-select:focus{ border-color:var(--brand-color); }
+
+/* Select 样式 */
+.w-select{
+    width:100%; padding:8px 12px; border:1px solid var(--custom-border-token); border-radius:6px;
+    background:var(--custom-bg-card); color:var(--text-primary); font-size:14px;
+    appearance:auto; -webkit-appearance:auto; outline:none; transition:border-color .2s;
+}
+.w-select:focus{ border-color:var(--brand-color); }
+.number-input{
+    width:100%; padding:8px 12px; border:1px solid var(--custom-border-token); border-radius:6px;
+    background:var(--custom-bg-card); color:var(--text-primary); font-size:14px; outline:none;
+    -moz-appearance:textfield;
+}
+.number-input::-webkit-inner-spin-button{ appearance:auto; }
+
+/* 动画 */
+@keyframes fadeInUp{ from{opacity:0;transform:translateY(16px);} to{opacity:1;transform:translateY(0);} }
+.anim-in{ animation:fadeInUp .4s ease both; } .anim-d1{ animation-delay:.05s; } .anim-d2{ animation-delay:.10s; }
+
+/* ============================================
+   响应式断点
+   ============================================ */
+@media(min-width:768px){ .login-form-wrap{ max-width:480px;padding:20px 30px;border-radius:16px; } .main-content{ padding:0 8px; } }
+@media(min-width:1024px){
+    body{ padding:20px 24px; } .login-page{ padding:36px 30px; } .header{ height:56px; border-radius:14px; }
+    .data-table{ font-size:14px; } .data-table thead th,.data-table tbody td{ padding:12px 14px; }
+}
+@media(min-width:1440px){ .main-content{ max-width:1480px; } }
+@media(max-width:767px){
+    body{ padding:8px; } .header{ padding:0 10px;height:46px;margin-bottom:8px;border-radius:10px;overflow:hidden; }
+    .header b{ font-size:14px!important; } .nav-enhanced .weui-navbar__item{ font-size:13px;padding:0 8px!important; }
+    .data-table{ font-size:11.5px; } .data-table thead th,.data-table tbody td{ padding:6px 5px!important; }
+    .pagination-wrap{ justify-content:center; } .login-inner{ max-width:100%;padding:0 14px; }
+    .login-form-wrap{ box-shadow:var(--custom-shadow-lg)!important;border-radius:14px!important; }
+    .cdk-display-box{ font-size:13px;padding:12px; } .config-grid{ grid-template-columns:1fr; }
+    /* 表格横向滚动 */
+    .table-wrap{ overflow-x:auto;-webkit-overflow-scrolling:touch; }
+}
+</style>
+</head>
+
+<body ontouchstart="">
+
+<div id="app">
+
+<!-- ==========================================================
+     未登录：登录页（与用户端完全一致的 WeUI 结构）
+     ========================================================== -->
+<div v-if="!isLogin" class="login-page">
+
+    <div class="login-inner">
+        <!-- 品牌 -->
+        <div class="login-brand anim-in">
+            <div class="login-brand-logo">
+                <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </div>
+            <h1>xi~ API</h1>
+            <p>管理控制台</p>
+            <button class="theme-toggle-btn" @click="toggleAdminTheme"
+                    :title="isDark ? '切换到日间模式' : '切换到夜间模式'" style="margin-top:20px;">
+                <svg v-if="isDark" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                <svg v-else viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            </button>
+        </div>
+
+        <!-- 登录表单（WeUI 标准） -->
+        <div class="anim-in anim-d1">
+            <div class="login-form-wrap">
+                <div class="weui-form" style="margin:0;">
+                    <div class="weui-form__text-area">
+                        <h2 class="weui-form__title">管理员登录</h2>
+                    </div>
+                    <div class="weui-form__control-area">
+                        <div class="weui-cells weui-cells_form">
+                            <div class="weui-cell">
+                                <div class="weui-cell__hd"><label class="weui-label">用户名</label></div>
+                                <div class="weui-cell__bd">
+                                    <input class="weui-input" v-model="loginForm.username" placeholder="请输入管理员账号" @keyup.enter="handleLogin" />
+                                </div>
+                            </div>
+                            <div class="weui-cell">
+                                <div class="weui-cell__hd"><label class="weui-label">密码</label></div>
+                                <div class="weui-cell__bd" style="display:flex;align-items:center;">
+                                    <input class="weui-input" :type="showLoginPwd ? 'text' : 'password'"
+                                           v-model="loginForm.password" placeholder="请输入密码"
+                                           @keyup.enter="handleLogin" style="flex:1;min-width:0;" />
+                                    <span class="pwd-toggle" @click="showLoginPwd = !showLoginPwd" title="显示/隐藏密码">
+                                        <svg v-if="!showLoginPwd" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        <svg v-else viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="weui-form__opr-area">
+                        <button class="weui-btn weui-btn_primary" @click="handleLogin" :style="{height:'44px',fontSize:'15px'}">
+                            {{ loading ? '登录中...' : '进入控制台' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /login-page -->
+
+
+<!-- ==========================================================
+     已登录：主面板
+     ========================================================== -->
+<div v-else class="main-wrap" style="min-height:100vh;">
+
+    <!-- Header -->
+    <div class="header anim-in">
+        <span style="display:flex;align-items:center;gap:8px;">
+            <svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:none;stroke:var(--brand-color);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            <b style="color:var(--brand-color);font-size:16px;">xi~ API Admin</b>
+        </span>
+        <div style="display:flex;align-items:center;gap:8px;">
+            <button class="theme-toggle-btn" @click="toggleAdminTheme" :title="isDark ? '日间' : '夜间'">
+                <svg v-if="isDark" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                <svg v-else viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            </button>
+            <a href="javascript:;" class="weui-btn weui-btn_mini weui-btn_warn" @click="confirmLogout">退出</a>
+        </div>
+    </div>
+
+    <!-- 导航栏 -->
+    <nav class="weui-navbar nav-enhanced anim-in anim-d1">
+        <div class="weui-navbar__item" :class="{ 'weui-bar__item_on': activeTab === 'dashboard' }" @click="switchTab('dashboard')">
+            仪表盘
+        </div>
+        <div class="weui-navbar__item" :class="{ 'weui-bar__item_on': activeTab === 'users' }" @click="switchTab('users')">
+            用户资产
+        </div>
+        <div class="weui-navbar__item" :class="{ 'weui-bar__item_on': activeTab === 'generate' }" @click="switchTab('generate')">
+            卡密生成
+        </div>
+        <div class="weui-navbar__item" :class="{ 'weui-bar__item_on': activeTab === 'repo' }" @click="switchTab('repo')">
+            卡密仓库
+        </div>
+        <div class="weui-navbar__item" :class="{ 'weui-bar__item_on': activeTab === 'settings' }" @click="switchTab('settings')">
+            系统配置
+        </div>
+    </nav>
+
+
+    <div class="main-content">
+
+        <!-- ======================== Tab 0: 仪表盘 ======================== -->
+        <div v-show="activeTab === 'dashboard'" class="anim-in anim-d2">
+
+            <!-- 统计卡片网格 -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:16px;">
+
+                <!-- 用户总数 -->
+                <div class="weui-panel weui-panel_access" style="margin:0;padding:18px 16px;text-align:center;">
+                    <div style="font-size:28px;font-weight:700;color:var(--brand-color);">{{ dashStats.users?.total ?? '-' }}</div>
+                    <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">注册用户总数</div>
+                </div>
+
+                <!-- 今日新增 -->
+                <div class="weui-panel weui-panel_access" style="margin:0;padding:18px 16px;text-align:center;">
+                    <div style="font-size:28px;font-weight:700;color:#576b95;">{{ dashStats.users?.today_new ?? '-' }}</div>
+                    <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">今日新增用户</div>
+                </div>
+
+                <!-- VIP 数量 -->
+                <div class="weui-panel weui-panel_access" style="margin:0;padding:18px 16px;text-align:center;">
+                    <div style="font-size:28px;font-weight:700;color:var(--tag-vip-fg,#8B6914);">{{ dashStats.users?.vip_count ?? '-' }}</div>
+                    <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">VIP 用户</div>
+                </div>
+
+                <!-- SVIP 数量 -->
+                <div class="weui-panel weui-panel_access" style="margin:0;padding:18px 16px;text-align:center;">
+                    <div style="font-size:28px;font-weight:700;color:var(--tag-svip-fg,#C9A227);">{{ dashStats.users?.svip_count ?? '-' }}</div>
+                    <div style="font-size:13px;color:var(--text-secondary);margin-top-top:4px;">SVIP 尊享</div>
+                </div>
+
+                <!-- CDK 总量 -->
+                <div class="weui-panel weui-panel_access" style="margin:0;padding:18px 16px;text-align:center;">
+                    <div style="font-size:28px;font-weight:700;color:var(--icon-orange-bg,#FA9D3B);">{{ dashStats.cdk?.total ?? '-' }}</div>
+                    <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">卡密总生成量</div>
+                </div>
+
+                <!-- 未使用 -->
+                <div class="weui-panel weui-panel_access" style="margin:0;padding:18px 16px;text-align:center;">
+                    <div style="font-size:28px;font-weight:700;color:var(--tag-normal-fg,#2e7d32);">{{ dashStats.cdk?.unused ?? '-' }}</div>
+                    <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">未使用卡密</div>
+                </div>
+
+                <!-- 已使用 -->
+                <div class="weui-panel weui-panel_access" style="margin:0;padding:18px 16px;text-align:center;">
+                    <div style="font-size:28px;font-weight:700;color:var(--icon-blue-bg);">{{ dashStats.cdk?.used ?? '-' }}</div>
+                    <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">已兑换卡密</div>
+                </div>
+
+                <!-- 今日兑换 -->
+                <div class="weui-panel weui-panel_access" style="margin:0;padding:18px 16px;text-align:center;">
+                    <div style="font-size:28px;font-weight:700;color:#f56c6c;">{{ dashStats.cdk?.today_redeemed ?? '-' }}</div>
+                    <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">今日兑换量</div>
+                </div>
+
+            </div><!-- /stat cards grid -->
+
+            <!-- 快捷操作入口 -->
+            <div class="weui-panel weui-panel_access" style="margin-bottom:14px;">
+                <div class="weui-panel__hd" style="display:flex;align-items:center;gap:8px;">
+                    <span class="panel-icon-svg panel-icon-assets"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
+                    <span style="font-size:14px;color:var(--text-secondary);">快捷操作</span>
+                </div>
+                <div class="weui-media-box weui-media-box_appmsg" @click="switchTab('generate')" style="cursor:pointer;">
+                    <div class="weui-media-box__hd"><span class="asset-icon-wrap" style="background:var(--icon-orange-bg);"><svg viewBox="0 0 24 24" style="color:#fff;width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg></span></div>
+                    <div class="weui-media-box__bd">
+                        <h4 class="weui-media-box__title">生成新卡密</h4>
+                        <p class="weui-media-box__desc">单张或批量创建 CDK 卡密</p>
+                    </div>
+                    <div class="weui-cell__ft">&rsaquo;</div>
+                </div>
+                <div class="weui-media-box weui-media-box_appmsg" @click="switchTab('users')" style="cursor:pointer;">
+                    <div class="weui-media-box__hd"><span class="asset-icon-wrap" style="background:var(--icon-blue-bg);"><svg viewBox="0 0 24 24" style="color:#fff;width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></span></div>
+                    <div class="weui-media-box__bd">
+                        <h4 class="weui-media-box__title">管理用户资产</h4>
+                        <p class="weui-media-box__desc">查看/编辑用户额度与权限</p>
+                    </div>
+                    <div class="weui-cell__ft">&rsaquo;</div>
+                </div>
+                <div class="weui-media-box weui-media-box_appmsg" @click="switchTab('repo')" style="cursor:pointer;">
+                    <div class="weui-media-box__hd"><span class="asset-icon-wrap" style="background:var(--icon-brand-bg);"><svg viewBox="0 0 24 24" style="color:#fff;width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;"><rect x="4" y="4" width="16" height="16" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="15" x2="12" y2="15"/></svg></span></div>
+                    <div class="weui-media-box__bd">
+                        <h4 class="weui-media-box__title">卡密仓库</h4>
+                        <p class="weui-media-box__desc">查看、复制或作废已有卡密</p>
+                    </div>
+                    <div class="weui-cell__ft">&rsaquo;</div>
+                </div>
+            </div>
+
+        </div><!-- /tab dashboard -->
+
+
+        <!-- ======================== Tab 1: 用户资产管理 ======================== -->
+        <div v-show="activeTab === 'users'" class="anim-in anim-d2">
+
+            <!-- 筛选栏 (WeUI cells) -->
+            <div class="weui-panel" style="margin-bottom:12px;">
+                <div class="weui-panel__bd">
+                    <div class="weui-cells weui-cells_form" style="padding:8px 0;">
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;padding:4px 15px;">
+                            <input class="weui-input" v-model="userFilter.qq" placeholder="QQ 号搜索" clearable
+                                   style="flex:1;min-width:120px;" @keyup.enter="doSearch" />
+                            <input class="weui-input" v-model="userFilter.status" placeholder="状态(0-4)" clearable
+                                   style="width:90px;" @keyup.enter="doSearch" />
+                            <input class="weui-input" v-model="userFilter.has_api" placeholder="权限(y/n)" clearable
+                                   style="width:95px;" @input="doSearch" />
+                            <input class="weui-input" v-model="userFilter.api_name" placeholder="接口名" clearable
+                                   style="flex:1;min-width:100px;" @input="doSearch" />
+                            <input type="number" class="number-input" v-model.number="userFilter.min_cards" placeholder="最小卡"
+                                   style="width:85px;" @change="doSearch" />
+                            <input type="number" class="number-input" v-model.number="userFilter.max_cards" placeholder="最大卡"
+                                   style="width:85px;" @change="doSearch" />
+                            <button class="weui-btn weui-btn_mini weui-btn_primary" @click="doSearch">筛选</button>
+                            <button class="weui-btn weui-btn_mini weui-btn_default" @click="resetFilter">重置</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 用户表格 -->
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width:38px;"></th>
+                            <th style="width:55px;">ID</th>
+                            <th style="width:115px;">QQ账号</th>
+                            <th style="width:75px;">已用卡数</th>
+                            <th style="width:105px;">账号状态</th>
+                            <th style="width:155px;">注册时间</th>
+                            <th>管理操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template v-for="(row, idx) in users" :key="idx">
+                            <tr>
+                                <td style="text-align:center;cursor:pointer;color:var(--text-secondary);" @click="toggleExpand(row.qq)">
+                                    <span style="font-size:12px;">{{ expandedRow === row.qq ? '&#x25B2;' : '&#x25BC;' }}</span>
+                                </td>
+                                <td>{{ row.id }}</td>
+                                <td><b>{{ row.qq }}</b></td>
+                                <td>{{ row.used_cards || 0 }}</td>
+                                <td>
+                                    <span class="status-tag"
+                                          :class="{'tag-normal': row.status == '1', 'tag-vip': row.status == '2', 'tag-svip': row.status == '3', 'tag-book': row.status == '4', 'tag-banned': row.status == '0'}">
+                                        {{ getStatusText(row.status) }}
+                                    </span>
+                                </td>
+                                <td style="white-space:nowrap;">{{ formatDate(row.created_at) }}</td>
+                                <td>
+                                    <div class="action-bar">
+                                        <button class="weui-btn weui-btn_mini weui-btn_primary" @click="openLimitEdit(row)">额度</button>
+                                        <button class="weui-btn weui-btn_mini weui-btn_default" @click="resetPassword(row.qq)">密码</button>
+                                        <button class="weui-btn weui-btn_mini weui-btn_primary" @click="regenToken(row.qq)" style="background:var(--icon-blue-bg);border-color:var(--icon-blue-bg);">Token</button>
+                                        <button class="weui-btn weui-btn_mini weui-btn_default" @click="openStatusEdit(row)">状态</button>
+                                        <button class="weui-btn weui-btn_mini weui-btn_warn" @click="deleteUser(row.qq)">删除</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- 展开行：资产详情 -->
+                            <tr v-if="expandedRow === row.qq && row.assets && row.assets.length > 0" class="expand-row">
+                                <td colspan="7">
+                                    <table class="expand-inner-table">
+                                        <thead><tr><th>接口名</th><th>今日剩余(L)</th><th>重置上限</th><th>余额(E)</th><th>权限</th><th>操作</th></tr></thead>
+                                        <tbody>
+                                            <tr v-for="(asset, aidx) in row.assets" :key="aidx">
+                                                <td>{{ asset.api_name }}</td>
+                                                <td>{{ asset.daily_limit }}</td>
+                                                <td>{{ asset.max_daily_limit }}</td>
+                                                <td>{{ asset.extra_balance }}</td>
+                                                <td>
+                                                    <span class="status-tag" :class="asset.has_permission ? 'tag-normal' : 'tag-banned'">
+                                                        {{ asset.has_permission ? '允许' : '禁止' }}
+                                                    </span>
+                                                </td>
+                                                <td><a href="javascript:;" style="color:#f56c6c;font-size:12px;text-decoration:none;" @click="deleteAsset(row.qq, asset.api_name)">删除</a></td>
+                                            </tr>
+                                            <tr v-if="!row.assets || row.assets.length === 0">
+                                                <td colspan="6" style="text-align:center;color:var(--text-hint);padding:12px;">暂无资产记录</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </template>
+                        <tr v-if="users.length === 0">
+                            <td colspan="7" style="text-align:center;color:var(--text-hint);padding:30px;">暂无数据</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分页 -->
+            <div class="pagination-wrap">
+                <span class="page-info">共 {{ userTotal }} 条</span>
+                <select class="page-sizes" v-model.number="userSize" @change="userPage=1;fetchUsers()">
+                    <option :value="10">10条/页</option>
+                    <option :value="20">20条/页</option>
+                    <option :value="50">50条/页</option>
+                </select>
+                <button class="page-btn" :disabled="userPage <= 1" @click="userPage--; fetchUsers()">&laquo;</button>
+                <button class="page-btn" :disabled="userPage <= 1" @click="userPage = Math.max(1, userPage - 1); fetchUsers()">&lsaquo;</button>
+                <button class="page-btn active">{{ userPage }}</button>
+                <button class="page-btn" :disabled="userPage * userSize >= userTotal" @click="userPage++; fetchUsers()">&rsaquo;</button>
+                <button class="page-btn" :disabled="userPage * userSize >= userTotal" @click="userPage = totalPages(); fetchUsers()">&raquo;</button>
+            </div>
+
+        </div><!-- /tab users -->
+
+
+        <!-- ======================== Tab 2: 卡密生成器 ======================== -->
+        <div v-show="activeTab === 'generate'" class="anim-in anim-d2">
+
+            <div class="desktop-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;">
+
+                <!-- 左侧：表单 -->
+                <div class="weui-panel weui-panel_access">
+                    <div class="weui-panel__hd" style="display:flex;align-items:center;gap:8px;">
+                        <span class="panel-icon-svg panel-icon-cdk"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg></span>
+                        <span style="font-size:14px;color:var(--text-secondary);">生成新卡密 (CDK)</span>
+                    </div>
+                    <div class="cdk-area" style="padding:12px 16px 18px;">
+                        <!-- 发卡范围 -->
+                        <div class="weui-cells weui-cells_form" style="margin:0 0 10px;">
+                            <div class="weui-cell">
+                                <div class="weui-cell__hd"><label class="weui-label">发卡范围</label></div>
+                                <div class="weui-cell__bd">
+                                    <div class="radio-group">
+                                        <label class="radio-item" @click="cdkForm.scope_type=3">
+                                            <span class="radio-dot" :class="{active: cdkForm.scope_type===3}"></span> 通用卡
+                                        </label>
+                                        <label class="radio-item" @click="cdkForm.scope_type=1">
+                                            <span class="radio-dot" :class="{active: cdkForm.scope_type===1}"></span> 指定QQ
+                                        </label>
+                                        <label class="radio-item" @click="cdkForm.scope_type=2">
+                                            <span class="radio-dot" :class="{active: cdkForm.scope_type===2}"></span> 指定身份
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="weui-cells weui-cells_form" style="margin:0 0 10px;">
+                            <div class="weui-cell" v-if="cdkForm.scope_type === 1">
+                                <div class="weui-cell__hd"><label class="weui-label">目标 QQ</label></div>
+                                <div class="weui-cell__bd">
+                                    <input class="weui-input" v-model="cdkForm.scope_value" placeholder="输入指定的 QQ 号" />
+                                </div>
+                            </div>
+                            <div class="weui-cell" v-if="cdkForm.scope_type === 2">
+                                <div class="weui-cell__hd"><label class="weui-label">所需身份</label></div>
+                                <div class="weui-cell__bd">
+                                    <select class="w-select" v-model="cdkForm.scope_value">
+                                        <option value="">请选择</option>
+                                        <option value="4">仅书源用户可用</option>
+                                        <option value="3">仅 SVIP 尊享用户可用</option>
+                                        <option value="2">仅 VIP 特权用户可用</option>
+                                        <option value="1">普通用户专属</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="weui-cell">
+                                <div class="weui-cell__hd"><label class="weui-label">充值类型</label></div>
+                                <div class="weui-cell__bd">
+                                    <select class="w-select" v-model="cdkForm.card_type">
+                                        <option :value="2">增加每日限额 (L)</option>
+                                        <option :value="1">增加不朽余额 (E)</option>
+                                        <option :value="3">开通接口权限</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="weui-cell">
+                                <div class="weui-cell__hd"><label class="weui-label">接口名称</label></div>
+                                <div class="weui-cell__bd">
+                                    <input class="weui-input" v-model="cdkForm.api_name" placeholder="例如: novel_read" />
+                                </div>
+                            </div>
+                            <div class="weui-cell" v-if="cdkForm.card_type !== 3">
+                                <div class="weui-cell__hd"><label class="weui-label">面额 (次数)</label></div>
+                                <div class="weui-cell__bd">
+                                    <input type="number" class="number-input" v-model.number="cdkForm.face_value" :min="1" step="100" />
+                                </div>
+                            </div>
+                            <div class="weui-cell">
+                                <div class="weui-cell__hd"><label class="weui-label">有效期 (天)</label></div>
+                                <div class="weui-cell__bd">
+                                    <input type="number" class="number-input" v-model.number="cdkForm.days_valid" :min="1" :max="3650" />
+                                </div>
+                            </div>
+                            <div class="weui-cell">
+                                <div class="weui-cell__hd"><label class="weui-label">使用次数</label></div>
+                                <div class="weui-cell__bd" style="display:flex;align-items:center;gap:6px;">
+                                    <input type="number" class="number-input" v-model.number="cdkForm.max_uses" :min="0" step="1" style="flex:1;" />
+                                    <span style="font-size:12px;color:var(--text-hint);white-space:nowrap;">0=不限</span>
+                                </div>
+                            </div>
+                            <div class="weui-cell">
+                                <div class="weui-cell__hd"><label class="weui-label">生成数量</label></div>
+                                <div class="weui-cell__bd">
+                                    <input type="number" class="number-input" v-model.number="cdkForm.count" :min="1" :max="100" value="1" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex;gap:10px;">
+                            <button class="weui-btn weui-btn_primary" style="flex:1;" @click="handleGenerateCDK"
+                                    :disabled="generatingCDK">
+                                {{ generatingCDK ? '生成中...' : '立即生成并入库' }}
+                            </button>
+                            <button v-if="cdkForm.count > 1" class="weui-btn weui-btn_default" style="white-space:nowrap;"
+                                    @click="handleBatchGenerateCDK" :disabled="generatingCDK">
+                                批量生成({{ cdkForm.count }})
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右侧：最新生成的卡密（单张 / 批量） -->
+                <div class="weui-panel weui-panel_access">
+                    <div class="weui-panel__hd" style="display:flex;align-items:center;gap:8px;">
+                        <span class="panel-icon-svg panel-icon-assets"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="15" x2="12" y2="15"/></svg></span>
+                        <span style="font-size:14px;color:var(--text-secondary);">生成结果</span>
+                    </div>
+                    <!-- 单张结果 -->
+                    <div v-if="lastCdk && !batchCdkList.length" style="text-align:center;padding:30px 16px;">
+                        <p style="font-size:14px;color:var(--text-secondary);margin-bottom:10px;">请复制下方字符串发给用户</p>
+                        <div class="cdk-display-box">{{ lastCdk }}</div>
+                        <button class="weui-btn weui-btn_mini weui-btn_primary" style="margin-top:20px;" @click="copyCdk(lastCdk)">复制卡密</button>
+                    </div>
+                    <!-- 批量结果 -->
+                    <div v-if="batchCdkList.length > 0" style="padding:16px;">
+                        <p style="font-size:14px;color:var(--text-secondary);margin-bottom:10px;">
+                            共生成 <b>{{ batchCdkList.length }}</b> 张卡密
+                        </p>
+                        <div style="display:flex;gap:8px;margin-bottom:12px;">
+                            <button class="weui-btn weui-btn_mini weui-btn_primary" @click="copyAllBatchCDK">复制全部</button>
+                            <button class="weui-btn weui-btn_mini weui-btn_default" @click="batchCdkList = []; lastCdk = '';">清空列表</button>
+                        </div>
+                        <div style="max-height:360px;overflow-y:auto;border:1px solid var(--custom-border-token);border-radius:8px;background:var(--custom-bg-elevated);">
+                            <div v-for="(item, bidx) in batchCdkList" :key="bidx"
+                                 style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--custom-border-token);">
+                                <span style="font-family:monospace;font-size:11.5px;word-break:break-all;flex:1;min-width:0;color:var(--brand-color);">{{ item.cdk }}</span>
+                                <button class="weui-btn weui-btn_mini weui-btn_default" style="flex-shrink:0;margin-left:8px;" @click="copyCdk(item.cdk)">复制</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 空状态 -->
+                    <div v-else-if="!lastCdk && !batchCdkList.length" class="empty-state" style="text-align:center;padding:40px 0;color:var(--text-secondary);">
+                        暂无生成记录
+                    </div>
+                </div>
+
+            </div><!-- /grid -->
+
+        </div><!-- /tab generate -->
+
+
+        <!-- ======================== Tab 3: 卡密仓库 ======================== -->
+        <div v-show="activeTab === 'repo'" class="anim-in anim-d2">
+
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width:55px;">序号</th>
+                            <th style="width:155px;">创建时间</th>
+                            <th>加密卡号</th>
+                            <th style="width:130px;">充值类型</th>
+                            <th style="width:110px;">接口名</th>
+                            <th style="width:70px;">面值</th>
+                            <th style="width:85px;">使用次数</th>
+                            <th style="width:130px;">限制范围</th>
+                            <th style="width:165px;">过期时间</th>
+                            <th style="width:95px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template v-for="(row, idx) in cdks" :key="idx">
+                            <tr>
+                                <td style="text-align:center;">{{ (cdkPage-1)*cdkSize + idx + 1 }}</td>
+                                <td style="white-space:nowrap;font-size:12px;">{{ formatDate(row.created_at) }}</td>
+                                <td>
+                                    <span style="font-family:monospace;font-size:12px;display:inline-block;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;cursor:pointer;color:var(--brand-color);"
+                                          @click="copyCdk(row.card_key)" :title="'点击复制: ' + row.card_key">
+                                        {{ row.card_key }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-tag tag-normal">{{ getCardTypeText(row.card_type) }}</span>
+                                </td>
+                                <td>{{ row.api_name || '-' }}</td>
+                                <td>
+                                    <span v-if="row.card_type !== 3" style="color:var(--brand-color);font-weight:600;">+{{ row.face_value }}</span>
+                                    <span v-else style="color:var(--text-hint);">-</span>
+                                </td>
+                                <td>
+                                    <span v-if="row.max_uses === 0" style="color:var(--text-secondary);">{{ row.used_count || 0 }} / --</span>
+                                    <span v-else-if="(row.used_count || 0) >= row.max_uses" style="color:#f56c6c;font-weight:600;">{{ row.used_count || 0 }} / {{ row.max_uses }}</span>
+                                    <span v-else style="color:var(--brand-color);font-weight:600;">{{ row.used_count || 0 }} / {{ row.max_uses }}</span>
+                                </td>
+                                <td><span class="status-tag" :class="row.scope_type === 3 ? 'tag-normal' : 'tag-vip'" style="font-size:11px;padding:2px 8px;">{{ getScopeText(row.scope_type, row.scope_value) }}</span></td>
+                                <td style="font-size:12px;white-space:nowrap;">
+                                    <span :style="{ color: isExpired(row.expires_at) ? '#f56c6c' : 'inherit' }">
+                                        {{ formatDate(row.expires_at) }}<span v-if="isExpired(row.expires_at)"> (已过期)</span>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-bar">
+                                        <button class="weui-btn weui-btn_mini weui-btn_primary" @click="copyCdk(row.card_key)">复制</button>
+                                        <button class="weui-btn weui-btn_mini weui-btn_warn" @click="revokeCDK(row.card_key)">作废</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                        <tr v-if="cdks.length === 0">
+                            <td colspan="10" style="text-align:center;color:var(--text-hint);padding:30px;">暂无卡密数据</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination-wrap">
+                <span class="page-info">共 {{ cdkTotal }} 条</span>
+                <select class="page-sizes" v-model.number="cdkSize" @change="cdkPage=1;fetchCDKs()">
+                    <option :value="10">10条/页</option>
+                    <option :value="20">20条/页</option>
+                    <option :value="50">50条/页</option>
+                </select>
+                <button class="page-btn" :disabled="cdkPage <= 1" @click="cdkPage--; fetchCDKs()">&laquo;</button>
+                <button class="page-btn" :disabled="cdkPage <= 1" @click="cdkPage = Math.max(1, cdkPage - 1); fetchCDKs()">&lsaquo;</button>
+                <button class="page-btn active">{{ cdkPage }}</button>
+                <button class="page-btn" :disabled="cdkPage * cdkSize >= cdkTotal" @click="cdkPage++; fetchCDKs()">&rsaquo;</button>
+                <button class="page-btn" :disabled="cdkPage * cdkSize >= cdkTotal" @click="cdkPage = totalCdkPages(); fetchCDKs()">&raquo;</button>
+            </div>
+
+        </div><!-- /tab repo -->
+
+
+        <!-- ======================== Tab 4: 系统配置 ======================== -->
+        <div v-show="activeTab === 'settings'" class="anim-in anim-d2">
+
+            <div class="config-grid">
+
+                <!-- 左列 -->
+                <div>
+
+                    <!-- 服务配置 -->
+                    <div class="weui-panel weui-panel_access" style="margin-bottom:14px;">
+                        <div class="weui-panel__hd" style="display:flex;align-items:center;gap:8px;">
+                            <span class="panel-icon-svg panel-icon-settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>
+                            <span style="font-size:14px;color:var(--text-secondary);">服务配置</span>
+                        </div>
+                        <div class="weui-cells weui-cells_form" style="margin:0;">
+                            <div class="weui-cell">
+                                <div class="weui-cell__hd"><label class="weui-label">服务端口</label></div>
+                                <div class="weui-cell__bd">
+                                    <input class="weui-input" v-model="configForm.server.port" placeholder="例如: 8080" />
+                                </div>
+                            </div>
+                            <div class="weui-cell">
+                                <div class="weui-cell__hd"><label class="weui-label">运行模式</label></div>
+                                <div class="weui-cell__bd">
+                                    <select class="w-select" v-model="configForm.server.mode">
+                                        <option value="release">release（生产）</option>
+                                        <option value="debug">debug（调试）</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 注册控制 -->
+                    <div class="weui-panel weui-panel_access" style="margin-bottom:14px;">
+                        <div class="weui-panel__hd" style="display:flex;align-items:center;gap:8px;">
+                            <span class="panel-icon-svg panel-icon-user"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+                            <span style="font-size:14px;color:var(--text-secondary);">注册控制</span>
+                        </div>
+                        <div style="padding:14px 16px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;">
+                                <span style="font-size:14px;color:var(--text-primary);">允许新用户注册</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" v-model="configForm.enable_register">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div style="font-size:12px;color:var(--text-hint);margin-top:6px;" v-if="!configForm.enable_register">
+                                关闭后 /api/user_register 接口将返回 403 拒绝注册
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 管理员凭据 -->
+                    <div class="weui-panel weui-panel_access" style="margin-bottom:14px;">
+                        <div class="weui-panel__hd" style="display:flex;align-items:center;gap:8px;">
+                            <span class="panel-icon-svg panel-icon-user"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+                            <span style="font-size:14px;color:var(--text-secondary);">管理员凭据</span>
+                        </div>
+                        <div class="weui-cells weui-cells_form" style="margin:0;">
+                            <div class="weui-cell">
+                                <div class="weui-cell__hd"><label class="weui-label">用户名</label></div>
+                                <div class="weui-cell__bd">
+                                    <input class="weui-input" v-model="configForm.admin.username" />
+                                </div>
+                            </div>
+                            <div class="weui-cell">
+                                <div class="weui-cell__hd"><label class="weui-label">密码</label></div>
+                                <div class="weui-cell__bd" style="display:flex;align-items:center;">
+                                    <input class="weui-input" :type="showAdminPwd ? 'text' : 'password'" v-model="configForm.admin.password" placeholder="留空则不修改" style="flex:1;min-width:0;" />
+                                    <span class="pwd-toggle" @click="showAdminPwd = !showAdminPwd" title="显示/隐藏密码">
+                                        <svg v-if="!showAdminPwd" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        <svg v-else viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 邮件配置 -->
+                    <div class="weui-panel weui-panel_access" style="margin-bottom:14px;">
+                        <div class="weui-panel__hd" style="display:flex;align-items:center;gap:8px;">
+                            <span class="panel-icon-svg panel-icon-assets"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+                            <span style="font-size:14px;color:var(--text-secondary);">邮件配置</span>
+                        </div>
+                        <div class="weui-cells weui-cells_form" style="margin:0;">
+                            <div class="weui-cell">
+                                <div class="weui-cell__hd"><label class="weui-label">发件人</label></div>
+                                <div class="weui-cell__bd"><input class="weui-input" v-model="configForm.email.from" placeholder="example@qq.com" /></div>
+                            </div>
+                            <div class="weui-cell">
+                                <div class="weui-cell__hd"><label class="weui-label">SMTP密码</label></div>
+                                <div class="weui-cell__bd" style="display:flex;align-items:center;">
+                                    <input class="weui-input" :type="showEmailPwd ? 'text' : 'password'" v-model="configForm.email.password" placeholder="留空则不修改" style="flex:1;min-width:0;" />
+                                    <span class="pwd-toggle" @click="showEmailPwd = !showEmailPwd" title="显示/隐藏密码">
+                                        <svg v-if="!showEmailPwd" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        <svg v-else viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="weui-cell">
+                                <div class="weui-cell__hd"><label class="weui-label">SMTP服务器</label></div>
+                                <div class="weui-cell__bd"><input class="weui-input" v-model="configForm.email.host" placeholder="smtp.qq.com" /></div>
+                            </div>
+                            <div class="weui-cell">
+                                <div class="weui-cell__hd"><label class="weui-label">端口</label></div>
+                                <div class="weui-cell__bd">
+                                    <input type="number" class="number-input" v-model.number="configForm.email.port" :min="1" :max="65535" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div><!-- /左列 -->
+
+                <!-- 右列 -->
+                <div>
+
+                    <!-- Redis 配置 -->
+                    <div class="weui-panel weui-panel_access" style="margin-bottom:14px;">
+                        <div class="weui-panel__hd" style="display:flex;align-items:center;gap:8px;">
+                            <span class="panel-icon-svg panel-icon-cdk"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 7h10v2H7zm0 4h10v2H7zm0 4h7v2H7z"/></svg></span>
+                            <span style="font-size:14px;color:var(--text-secondary);">Redis 配置</span>
+                        </div>
+                        <div class="weui-cells weui-cells_form" style="margin:0;">
+                            <div class="weui-cell">
+                                <div class="weui-cell__hd"><label class="weui-label">地址</label></div>
+                                <div class="weui-cell__bd"><input class="weui-input" v-model="configForm.redis.addr" placeholder="localhost:6379" /></div>
+                            </div>
+                            <div class="weui-cell">
+                                <div class="weui-cell__hd"><label class="weui-label">密码</label></div>
+                                <div class="weui-cell__bd" style="display:flex;align-items:center;">
+                                    <input class="weui-input" :type="showRedisPwd ? 'text' : 'password'" v-model="configForm.redis.password" placeholder="留空则无密码" style="flex:1;min-width:0;" />
+                                    <span class="pwd-toggle" @click="showRedisPwd = !showRedisPwd" title="显示/隐藏密码">
+                                        <svg v-if="!showRedisPwd" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        <svg v-else viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="weui-cell">
+                                <div class="weui-cell__hd"><label class="weui-label">数据库编号</label></div>
+                                <div class="weui-cell__bd">
+                                    <input type="number" class="number-input" v-model.number="configForm.redis.db" :min="0" :max="15" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PostgreSQL 只读 -->
+                    <div class="weui-panel weui-panel_access" style="margin-bottom:14px;">
+                        <div class="weui-panel__hd" style="display:flex;align-items:center;gap:8px;">
+                            <span class="panel-icon-svg panel-icon-assets"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></span>
+                            <span style="font-size:14px;color:var(--text-secondary);">PostgreSQL（只读）</span>
+                        </div>
+                        <ul class="desc-list" style="margin:0 16px;">
+                            <li class="desc-item"><span class="desc-label">用户</span><span class="desc-value">{{ configForm.postgres.user || '-' }}</span></li>
+                            <li class="desc-item"><span class="desc-label">密码</span><span class="desc-value">{{ configForm.postgres.password || '(未设置)' }}</span></li>
+                            <li class="desc-item"><span class="desc-label">主机</span><span class="desc-value">{{ configForm.postgres.host || '-' }}</span></li>
+                            <li class="desc-item"><span class="desc-label">数据库</span><span class="desc-value">{{ configForm.postgres.database || '-' }}</span></li>
+                            <li class="desc-item"><span class="desc-label">SSL模式</span><span class="desc-value">{{ configForm.postgres.sslmode || '-' }}</span></li>
+                        </ul>
+                        <div style="padding:10px 16px 14px;">
+                            <p style="font-size:12px;color:var(--text-hint);">
+                                * 数据库配置修改需重启服务生效，请直接编辑 config.json
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 内部密钥 -->
+                    <div class="weui-panel weui-panel_access" style="margin-bottom:14px;">
+                        <div class="weui-panel__hd" style="display:flex;align-items:center;gap:8px;">
+                            <span class="panel-icon-svg panel-icon-settings"><svg viewBox="0 0 24 12"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>
+                            <span style="font-size:14px;color:var(--text-secondary);">内部密钥</span>
+                        </div>
+                        <div style="padding:14px 16px;">
+                            <div style="display:flex;align-items:center;background:var(--custom-bg-elevated);border-radius:6px;padding:8px 12px;">
+                                <span v-if="!configForm.internal_secret" style="flex:1;font-family:monospace;font-size:13px;color:var(--text-hint);">
+                                    (未设置)
+                                </span>
+                                <template v-else>
+                                    <span style="flex:1;font-family:monospace;font-size:13px;color:var(--text-secondary);word-break:break-all;user-select:all;">
+                                        {{ showSecret ? configForm.internal_secret : '••••••••••••••••' }}
+                                    </span>
+                                    <span class="pwd-toggle" @click="showSecret = !showSecret" :title="showSecret ? '隐藏密钥' : '查看密钥'" style="margin-left:4px;">
+                                        <svg v-if="!showSecret" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        <svg v-else viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                    </span>
+                                </template>
+                                <span style="font-size:11px;color:var(--text-hint);margin-left:8px;white-space:nowrap;flex-shrink:0;">修改需编辑 config.json 并重启</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div><!-- /右列 -->
+
+            </div><!-- /config-grid -->
+
+            <div style="text-align:center;margin-top:20px;">
+                <button class="weui-btn weui-btn_primary" style="min-width:120px;" @click="saveConfig" :disabled="savingConfig">
+                    {{ savingConfig ? '保存中...' : '保存配置' }}
+                </button>
+                <button class="weui-btn weui-btn_default" style="min-width:120px;" @click="fetchConfig">重新加载</button>
+                <button class="weui-btn weui-btn_warn" style="min-width:160px;" @click="showPwdDialog = true">显示明文密码</button>
+            </div>
+
+            <!-- 明文密码确认弹窗 -->
+            <div v-if="showPwdDialog" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:999;display:flex;align-items:center;justify-content:center;">
+                <div style="background:var(--bg-primary);border-radius:12px;padding:24px;width:340px;max-width:90vw;">
+                    <h4 style="margin:0 0 12px;font-size:16px;">验证管理员身份</h4>
+                    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">输入管理员密码后显示所有敏感配置的明文</p>
+                    <input class="weui-input" type="password" v-model="pwdDialogPwd" placeholder="管理员密码" style="margin-bottom:16px;" @keyup.enter="fetchConfigPlaintext" />
+                    <div style="display:flex;gap:10px;justify-content:flex-end;">
+                        <button class="weui-btn weui-btn_default" style="min-width:80px;" @click="showPwdDialog = false; pwdDialogPwd = '';">取消</button>
+                        <button class="weui-btn weui-btn_primary" style="min-width:80px;" @click="fetchConfigPlaintext">确认</button>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /tab settings -->
+
+
+    </div><!-- /main-content -->
+
+    <!-- 底部版权 -->
+    <div class="weui-footer" style="padding-top:20px;">
+        <p class="weui-footer__text">Copyright &copy; 2026 xi~ API Admin</p>
+    </div>
+
+</div><!-- /app -->
+
+
+<!-- ========== 额度编辑弹窗（WeUI 风格）========== -->
+<div v-if="limitDialog.visible" class="modal-overlay" @click.self="limitDialog.visible=false" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:1000;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:20px;">
+    <div class="weui-dialog" style="border-radius:12px;max-width:420px;width:100%;animation:fadeInUp .25s ease both;">
+        <div class="weui-dialog__hd">
+            <strong class="weui-dialog__title">编辑用户额度</strong>
+        </div>
+        <div class="weui-dialog__bd" style="padding:16px 20px;">
+            <div class="weui-cells weui-cells_form" style="margin:0;">
+                <div class="weui-cell">
+                    <div class="weui-cell__hd"><label class="weui-label">QQ 号</label></div>
+                    <div class="weui-cell__bd"><input class="weui-input" :value="limitDialog.form.qq" readonly style="color:var(--text-hint);" /></div>
+                </div>
+                <div class="weui-cell">
+                    <div class="weui-cell__hd"><label class="weui-label">接口名</label></div>
+                    <div class="weui-cell__bd">
+                        <input class="weui-input" v-model="limitDialog.form.api_name" placeholder="输入接口名，如 novel_read" />
+                    </div>
+                </div>
+                <div class="weui-cell">
+                    <div class="weui-cell__hd"><label class="weui-label">每日限额(L)</label></div>
+                    <div class="weui-cell__bd">
+                        <input type="number" class="number-input" v-model.number="limitDialog.form.daily_limit" min="0" max="99999" />
+                    </div>
+                </div>
+                <div class="weui-cell">
+                    <div class="weui-cell__hd"><label class="weui-label">接口权限</label></div>
+                    <div class="weui-cell__bd" style="display:flex;align-items:center;height:44px;">
+                        <label class="toggle-switch" style="margin:0;">
+                            <input type="checkbox" v-model="limitDialog.form.has_perm">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span style="font-size:13px;color:var(--text-secondary);margin-left:8px;">{{ limitDialog.form.has_perm ? '允许使用' : '禁止使用' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="weui-dialog__ft" style="display:flex;">
+            <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_default" @click="limitDialog.visible=false">取消</a>
+            <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" @click="submitLimit">确定保存</a>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 状态编辑弹窗 ========== -->
+<div v-if="statusDialog.visible" class="modal-overlay" @click.self="statusDialog.visible=false" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:1000;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:20px;">
+    <div class="weui-dialog" style="border-radius:12px;max-width:420px;width:100%;animation:fadeInUp .25s ease both;">
+        <div class="weui-dialog__hd">
+            <strong class="weui-dialog__title">调整用户状态</strong>
+        </div>
+        <div class="weui-dialog__bd" style="padding:16px 20px;">
+            <div class="weui-cells weui-cells_form" style="margin:0;">
+                <div class="weui-cell">
+                    <div class="weui-cell__hd"><label class="weui-label">QQ 号</label></div>
+                    <div class="weui-cell__bd"><input class="weui-input" :value="statusDialog.form.qq" readonly style="color:var(--text-hint);" /></div>
+                </div>
+                <div class="weui-cell">
+                    <div class="weui-cell__hd"><label class="weui-label">当前状态</label></div>
+                    <div class="weui-cell__bd"><input class="weui-input" :value="getStatusText(statusDialog.form.currentStatus)" readonly style="color:var(--text-hint);" /></div>
+                </div>
+                <div class="weui-cell">
+                    <div class="weui-cell__hd"><label class="weui-label">新状态</label></div>
+                    <div class="weui-cell__bd">
+                        <select class="w-select" v-model="statusDialog.form.newStatus">
+                            <option value="1">普通用户</option>
+                            <option value="2">VIP 特权</option>
+                            <option value="3">SVIP 尊享</option>
+                            <option value="4">书源用户</option>
+                            <option value="0">封禁账号</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="weui-dialog__ft" style="display:flex;">
+            <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_default" @click="statusDialog.visible=false">取消</a>
+            <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" @click="submitStatus">确定保存</a>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- ========== 密码重置弹窗 ========== -->
+<div v-if="pwdDialog.visible" class="modal-overlay" @click.self="pwdDialog.visible=false" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:1000;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:20px;">
+    <div class="weui-dialog" style="border-radius:12px;max-width:420px;width:100%;animation:fadeInUp .25s ease both;">
+        <div class="weui-dialog__hd">
+            <strong class="weui-dialog__title">重设用户密码</strong>
+        </div>
+        <div class="weui-dialog__bd" style="padding:16px 20px;">
+            <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">为用户 <b>{{ pwdDialog.qq }}</b> 设置新的登录密码</p>
+            <div class="weui-cells weui-cells_form" style="margin:0;">
+                <div class="weui-cell">
+                    <div class="weui-cell__hd"><label class="weui-label">新密码</label></div>
+                    <div class="weui-cell__bd" style="display:flex;align-items:center;">
+                        <input class="weui-input" :type="showPwdDialogPwd ? 'text' : 'password'"
+                               v-model="pwdDialog.newPassword"
+                               placeholder="6-32位字符"
+                               @keyup.enter="submitPasswordReset"
+                               style="flex:1;min-width:0;" />
+                        <span class="pwd-toggle" @click="showPwdDialogPwd = !showPwdDialogPwd" title="显示/隐藏密码">
+                            <svg v-if="!showPwdDialogPwd" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg v-else viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <p style="font-size:11px;color:var(--text-hint);margin-top:8px;">* 密码长度需为 6-32 个字符</p>
+        </div>
+        <div class="weui-dialog__ft" style="display:flex;">
+            <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_default" @click="pwdDialog.visible=false">取消</a>
+            <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" @click="submitPasswordReset">确认修改</a>
+        </div>
+    </div>
+</div>
+
+<script>
+const { createApp, ref, reactive, computed, onMounted } = Vue;
+
+// ========== Toast 封装（weui.js）==========
+const toast = (msg, duration = 2000) => { weui.toast(msg, { duration }); };
+
+createApp({
+    setup() {
+
+        // ========== 基础状态 ==========
+        const isLogin = ref(false);
+        const loading = ref(false);
+        const showLoginPwd = ref(false);
+        // 配置页密码显隐
+        const showAdminPwd  = ref(false);
+        const showEmailPwd  = ref(false);
+        const showRedisPwd  = ref(false);
+        const showSecret    = ref(false); // 内部密钥显隐
+        const showPwdDialog = ref(false); // 明文密码弹窗
+        const pwdDialogPwd  = ref('');     // 弹窗中的管理员密码
+        const showPwdDialogPwd = ref(false); // 密码重置弹窗显隐
+        const adminToken = ref(localStorage.getItem('admin_token') || '');
+        const activeTab = ref('dashboard');
+        const expandedRow = ref(null);
+
+        // 分页
+        const users = ref([]); const userPage = ref(1); const userSize = ref(10); const userTotal = ref(0);
+        const cdks = ref([]);  const cdkPage = ref(1); const cdkSize = ref(10); const cdkTotal = ref(0);
+
+        // 筛选
+        const userFilter = reactive({ qq: '', status: '', has_api: '', api_name: '', min_cards: null, max_cards: null });
+
+        // 表单
+        const lastCdk = ref('');
+        const batchCdkList = ref([]);
+        const generatingCDK = ref(false);
+        const loginForm = reactive({ username: '', password: '' });
+        const cdkForm = reactive({ scope_type: 3, scope_value: '', card_type: 2, api_name: 'novel_read', face_value: 500, days_valid: 30, max_uses: 0, count: 1 });
+        const limitDialog = reactive({ visible: false, form: { qq: '', api_name: '', daily_limit: 0, has_perm: true } });
+        const pwdDialog = reactive({ visible: false, qq: '', newPassword: '' });
+        const configForm = reactive({
+            enable_register: true, server: { port: '8080', mode: 'release' },
+            postgres: { user: '', password: '', host: '', database: '', sslmode: '' },
+            redis: { addr: '', password: '', db: 0 }, admin: { username: '', password: '' },
+            email: { from: '', password: '', host: '', port: 465 }, internal_secret: ''
+        });
+        const savingConfig = ref(false);
+        const dashStats = reactive({ users: {}, cdk: {}, assets: {} });
+
+        // ========== Axios ==========
+        const http = axios.create({ baseURL: '/api' });
+        http.interceptors.request.use(c => { if (adminToken.value) c.headers['Admin-Token'] = adminToken.value; return c; });
+        http.interceptors.response.use(r => r, e => {
+            if (e.response && (e.response.status === 401 || e.response.status === 403)) {
+                toast('登录已过期或权限不足');
+                localStorage.removeItem('admin_token'); isLogin.value = false;
+            }
+            return Promise.reject(e);
+        });
+
+        // ========== 主题系统 ==========
+        const ADMIN_THEME_KEY = 'admin_theme_pref';
+        const isDark = ref(false);
+        let _systemFollow = true;
+
+        const applyAdminTheme = (dark) => { isDark.value = dark; document.body.setAttribute('data-weui-theme', dark ? 'dark' : 'light'); };
+        const toggleAdminTheme = () => {
+            _systemFollow = false;
+            const next = !isDark.value;
+            applyAdminTheme(next);
+            localStorage.setItem(ADMIN_THEME_KEY, next ? 'dark' : 'light');
+        };
+
+        const initAdminTheme = () => {
+            if (window.matchMedia) {
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                    if (_systemFollow) applyAdminTheme(e.matches);
+                });
+            }
+            const saved = localStorage.getItem(ADMIN_THEME_KEY);
+            if (saved === 'dark') { _systemFollow = false; applyAdminTheme(true); }
+            else if (saved === 'light') { _systemFollow = false; applyAdminTheme(false); }
+            else if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) applyAdminTheme(true);
+            else applyAdminTheme(false);
+        };
+
+        // ========== 导航 ==========
+        const switchTab = (name) => {
+            activeTab.value = name;
+            if (name === 'dashboard') fetchDashboardStats();
+            if (name === 'users') fetchUsers();
+            if (name === 'repo') fetchCDKs();
+            if (name === 'settings') fetchConfig();
+            if (name === 'dashboard') fetchDashboardStats();
+        };
+
+        // ========== 登录 ==========
+        const handleLogin = async () => {
+            if (!loginForm.username || !loginForm.password) return toast('请填写完整');
+            loading.value = true;
+            try {
+                const res = await http.post('/admin/login', loginForm);
+                if (res.data.code === 200) {
+                    adminToken.value = res.data.admin_token;
+                    localStorage.setItem('admin_token', adminToken.value);
+                    isLogin.value = true;
+                    fetchDashboardStats(); fetchUsers(); fetchCDKs();
+                    toast('登录成功');
+                }
+            } catch (e) { toast('登录失败: ' + (e.response?.data?.msg || '网络异常')); }
+            finally { loading.value = false; }
+        };
+
+        const confirmLogout = () => {
+            weui.confirm('确定要退出当前账号吗？', () => {
+                localStorage.removeItem('admin_token');
+                location.reload();
+            });
+        };
+
+        // ========== 用户管理 ==========
+        const doSearch = () => { userPage.value = 1; fetchUsers(); };
+        const resetFilter = () => {
+            userFilter.qq = ''; userFilter.status = ''; userFilter.has_api = '';
+            userFilter.api_name = ''; userFilter.min_cards = null; userFilter.max_cards = null;
+            userPage.value = 1; fetchUsers();
+        };
+
+        const toggleExpand = (qq) => { expandedRow.value = expandedRow.value === qq ? null : qq; };
+        const statusDialog = reactive({ visible: false, form: { qq: '', currentStatus: '', newStatus: '1' } });
+        const openStatusEdit = (row) => {
+            statusDialog.form.qq = row.qq;
+            statusDialog.form.currentStatus = row.status;
+            statusDialog.form.newStatus = row.status;
+            statusDialog.visible = true;
+        };
+        const submitStatus = async () => {
+            try {
+                await http.post('/admin/user/set_status', { qq: statusDialog.form.qq, status: parseInt(statusDialog.form.newStatus) });
+                toast('用户状态已更新');
+                statusDialog.visible = false;
+                fetchUsers();
+            } catch (e) { toast('操作失败'); }
+        };
+        const totalPages = () => Math.ceil(userTotal.value / userSize.value) || 1;
+        const totalCdkPages = () => Math.ceil(cdkTotal.value / cdkSize.value) || 1;
+
+        const fetchUsers = async () => {
+            try {
+                // 分页安全：确保 page 不小于 1
+                if (userPage.value < 1) userPage.value = 1;
+                const p = new URLSearchParams({ page: userPage.value, size: userSize.value });
+                if (userFilter.qq) p.append('qq', userFilter.qq);
+                if (userFilter.status) p.append('status', userFilter.status);
+                if (userFilter.has_api) p.append('has_api', userFilter.has_api);
+                if (userFilter.api_name) p.append('api_name', userFilter.api_name);
+                if (userFilter.min_cards != null) p.append('min_cards', userFilter.min_cards);
+                if (userFilter.max_cards != null) p.append('max_cards', userFilter.max_cards);
+                const res = await http.get(`/admin/users?${p.toString()}`);
+                const data = res.data.data;
+                users.value = Array.isArray(data) ? data : [];
+                userTotal.value = res.data.total || 0;
+                // 如果当前页超出范围，回退到最后一页
+                if (users.value.length === 0 && userPage.value > 1 && userTotal.value > 0) {
+                    userPage.value = totalPages();
+                    return fetchUsers();
+                }
+            } catch (e) {
+                users.value = [];
+                console.error('[fetchUsers]', e);
+            }
+        };
+
+        const handleSetStatus = async (qq, status) => {
+            try {
+                await http.post('/admin/user/set_status', { qq, status: parseInt(status) });
+                toast('用户状态已更新'); fetchUsers();
+            } catch (e) { toast('操作失败'); }
+        };
+
+        const openLimitEdit = (row) => {
+            limitDialog.form.qq = row.qq;
+            if (row.assets?.length) {
+                limitDialog.form.api_name = row.assets[0].api_name;
+                limitDialog.form.daily_limit = row.assets[0].daily_limit;
+                limitDialog.form.has_perm = row.assets[0].has_permission;
+            }
+            limitDialog.visible = true;
+        };
+        const submitLimit = async () => {
+            try {
+                await http.post('/admin/user/set_limit', limitDialog.form);
+                toast('限额及重置上限已更新');
+                limitDialog.visible = false; fetchUsers();
+            } catch (e) { toast('修正失败'); }
+        };
+
+        const resetPassword = (qq) => {
+            pwdDialog.qq = qq;
+            pwdDialog.newPassword = '';
+            showPwdDialogPwd.value = false;
+            pwdDialog.visible = true;
+        };
+        const submitPasswordReset = async () => {
+            const val = pwdDialog.newPassword.trim();
+            if (!val) return toast('请输入新密码');
+            if (val.length < 6 || val.length > 32) return toast('密码需6-32位');
+            try {
+                await http.post('/admin/user/reset_password', { qq: pwdDialog.qq, new_password: val });
+                toast('重置成功');
+                pwdDialog.visible = false;
+            } catch (e) { toast('操作失败'); }
+        };
+
+        const regenToken = (qq) => {
+            weui.confirm(`确定要为用户[${qq}]重新生成 API Token 吗？\n\n旧 Token 将立即失效，所有使用旧 Token 的请求将被拒绝。`, () => {
+                http.post('/admin/user/regen_token', { qq })
+                    .then((res) => {
+                        const newToken = res.data.data?.new_token || '';
+                        toast('Token 已重置');
+                        // 弹窗展示新 Token 并支持一键复制
+                        weui.alert(
+                            '<div style="text-align:left;padding:4px 0;">' +
+                            '<p style="font-size:13px;color:#666;margin-bottom:8px;">新 Token（请妥善保存）：</p>' +
+                            `<div id="new-token-display" style="word-break:break-all;font-family:monospace;font-size:12px;background:#f5f5f5;padding:10px;border-radius:6px;cursor:pointer;color:#07C160;" onclick="navigator.clipboard.writeText(this.textContent).then(()=>{this.style.color='#81c784';this.textContent='已复制到剪贴板'});">${newToken}</div>` +
+                            '</div>',
+                            { title: 'API Token 已重置' }
+                        );
+                    })
+                    .catch(() => toast('重置失败'));
+            }, function(){}, { title: '重置确认' });
+        };
+
+        const deleteAsset = (qq, apiName) => {
+            weui.confirm(`确定要删除用户[${qq}]的[${apiName}]资产吗？`, () => {
+                http.delete(`/admin/user/asset?qq=${qq}&api_name=${apiName}`)
+                    .then(() => { toast('资产已删除'); fetchUsers(); })
+                    .catch(() => toast('操作失败'));
+            }, function(){}, { title: '删除确认' });
+        };
+
+        const deleteUser = (qq) => {
+            weui.confirm(`确定要彻底删除用户[${qq}]吗？\n此操作将清空其所有记录！`, () => {
+                http.delete(`/admin/user?qq=${qq}`)
+                    .then(() => { toast('用户已删除'); fetchUsers(); })
+                    .catch(() => toast('操作失败'));
+            }, function(){}, { title: '高危操作警告' });
+        };
+
+        // ========== CDK ==========
+        const fetchDashboardStats = async () => {
+            try {
+                const res = await http.get('/admin/dashboard/stats');
+                if (res.data.code === 200) {
+                    Object.assign(dashStats, res.data.data || {});
+                }
+            } catch (e) { console.error('[dashboard]', e); }
+        };
+
+        const fetchCDKs = async () => {
+            try {
+                if (cdkPage.value < 1) cdkPage.value = 1;
+                const res = await http.get(`/admin/cdks?page=${cdkPage.value}&size=${cdkSize.value}`);
+                const data = res.data.data;
+                cdks.value = Array.isArray(data) ? data : [];
+                cdkTotal.value = res.data.total || 0;
+                // 当前页超出范围时自动回退
+                if (cdks.value.length === 0 && cdkPage.value > 1 && cdkTotal.value > 0) {
+                    cdkPage.value = totalCdkPages();
+                    return fetchCDKs();
+                }
+            } catch (e) {
+                cdks.value = [];
+                console.error('[fetchCDKs]', e);
+            }
+        };
+
+        const handleGenerateCDK = async () => {
+            try {
+                if (cdkForm.scope_type !== 3 && !cdkForm.scope_value) return toast('请填写目标QQ或选择所需身份');
+                generatingCDK.value = true;
+                const res = await http.post('/admin/generate_cdk', cdkForm);
+                lastCdk.value = res.data.data.cdk;
+                batchCdkList.value = [];
+                toast('卡密生成成功');
+            } catch (e) { toast('生成失败'); }
+            finally { generatingCDK.value = false; }
+        };
+
+        const handleBatchGenerateCDK = async () => {
+            if (!cdkForm.count || cdkForm.count < 2) return handleGenerateCDK();
+            try {
+                if (cdkForm.scope_type !== 3 && !cdkForm.scope_value) return toast('请填写目标QQ或选择所需身份');
+                generatingCDK.value = true;
+                const res = await http.post('/admin/generate_cdk_batch', cdkForm);
+                if (res.data.code === 200) {
+                    batchCdkList.value = res.data.data.list || [];
+                    lastCdk.value = '';
+                    toast(res.data.msg);
+                }
+            } catch (e) { toast(e.response?.data?.msg || '批量生成失败'); }
+            finally { generatingCDK.value = false; }
+        };
+
+        const copyAllBatchCDK = async () => {
+            if (!batchCdkList.value.length) return;
+            const allText = batchCdkList.value.map(item => item.cdk).join('\n');
+            let copied = false;
+            if (navigator.clipboard && window.isSecureContext) {
+                try { await navigator.clipboard.writeText(allText); copied = true; } catch (_) {}
+            }
+            if (!copied) {
+                const ta = document.createElement('textarea');
+                ta.value = allText; ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;z-index:-999;';
+                ta.setAttribute('readonly', ''); document.body.appendChild(ta);
+                ta.select(); ta.setSelectionRange(0, allText.length);
+                try { copied = document.execCommand('copy'); } catch (e) { copied = false; }
+                finally { document.body.removeChild(ta); }
+            }
+            toast(copied ? `已复制 ${batchCdkList.length} 张卡密到剪贴板` : '自动复制失败');
+        };
+
+        const revokeCDK = (cardKey) => {
+            weui.confirm('确定要作废并删除这张卡密吗？已领取的不受影响，未兑换的用户将无法使用。', () => {
+                http.delete(`/admin/cdk/revoke?card_key=${encodeURIComponent(cardKey)}`)
+                    .then(() => { toast('卡密已作废'); fetchCDKs(); })
+                    .catch(() => toast('操作失败'));
+            }, function(){}, { title: '作废确认' });
+        };
+
+        // ========== 复制 ==========
+        const copyCdk = async (str) => {
+            if (!str || typeof str !== 'string') { toast('无可复制内容'); return; }
+            let copied = false;
+            if (navigator.clipboard && window.isSecureContext) {
+                try { await navigator.clipboard.writeText(str); copied = true; } catch (_) {}
+            }
+            if (!copied) {
+                const ta = document.createElement('textarea');
+                ta.value = str; ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;z-index:-999;opacity:0.01;';
+                ta.setAttribute('readonly', ''); document.body.appendChild(ta);
+                ta.focus(); ta.select(); ta.setSelectionRange(0, str.length);
+                try { copied = document.execCommand('copy'); } catch (e) { copied = false; }
+                finally { document.body.removeChild(ta); }
+            }
+            toast(copied ? '已复制到剪贴板' : '自动复制失败，请手动选择文本复制');
+        };
+
+        // ========== 配置 ==========
+        const fetchConfig = async () => {
+            try {
+                const res = await http.get('/admin/config');
+                const d = res.data.data;
+                Object.assign(configForm.server, d.server || {});
+                configForm.enable_register = d.enable_register !== false;
+                Object.assign(configForm.postgres, d.postgres || {});
+                Object.assign(configForm.redis, d.redis || {});
+                Object.assign(configForm.admin, d.admin || {});
+                Object.assign(configForm.email, d.email || {});
+                configForm.internal_secret = d.internal_secret || '';
+            } catch (e) {}
+        };
+        const fetchConfigPlaintext = async () => {
+            if (!pwdDialogPwd.value) return toast('请输入管理员密码');
+            try {
+                const res = await http.post('/admin/config/reveal', { password: pwdDialogPwd.value });
+                if (res.data.code === 200 && res.data.data) {
+                    const d = res.data.data;
+                    Object.assign(configForm.server, d.server || {});
+                    configForm.enable_register = d.enable_register !== false;
+                    Object.assign(configForm.postgres, d.postgres || {});
+                    Object.assign(configForm.redis, d.redis || {});
+                    Object.assign(configForm.admin, d.admin || {});
+                    Object.assign(configForm.email, d.email || {});
+                    configForm.internal_secret = d.internal_secret || '';
+                    showAdminPwd.value = true;
+                    showEmailPwd.value = true;
+                    showRedisPwd.value = true;
+                    showSecret.value = true;
+                    toast('已加载明文配置');
+                } else {
+                    toast(res.data.msg || '验证失败');
+                }
+            } catch (e) {
+                toast(e.response?.data?.msg || '请求失败');
+            }
+            showPwdDialog.value = false;
+            pwdDialogPwd.value = '';
+        };
+        const saveConfig = async () => {
+            savingConfig.value = true;
+            try {
+                await http.post('/admin/config', {
+                    enable_register: configForm.enable_register,
+                    server: { ...configForm.server },
+                    admin: { ...configForm.admin },
+                    email: { ...configForm.email },
+                    redis: { ...configForm.redis }
+                });
+                toast('配置已保存'); fetchConfig();
+            } catch (e) { toast('保存失败: ' + (e.response?.data?.msg || '')); }
+            finally { savingConfig.value = false; }
+        };
+
+        // ========== 格式化 ==========
+        const formatDate = (val) => val ? new Date(val).toLocaleString() : '-';
+        const isExpired = (val) => new Date(val).getTime() < new Date().getTime();
+
+        const getStatusText = (s) =>
+            s == '1' ? '普通用户' : (s == '2' ? 'VIP特权' : (s == '3' ? 'SVIP尊享' : (s == '4' ? '书源用户' : '已封禁')));
+
+        const getCardTypeText = (c) =>
+            c == 1 ? '增加余额(E)' : (c == 2 ? '增加上限(L)' : '开通权限');
+
+        const getScopeText = (type, val) => {
+            if (type == 3) return '全网通用';
+            if (type == 1) return `指定QQ: ${val}`;
+            if (type == 2) {
+                const map = { '1':'仅普通用户', '2':'仅VIP可用', '3':'仅SVIP可用', '4':'仅书源用户' };
+                return map[val] || '未知';
+            }
+            return '未知限制';
+        };
+
+        onMounted(() => {
+            initAdminTheme();
+            if (adminToken.value) {
+                isLogin.value = true;
+                fetchDashboardStats(); fetchUsers(); fetchCDKs();
+            }
+        });
+
+        return {
+            activeTab, isLogin, loading, showLoginPwd,
+            showAdminPwd, showEmailPwd, showRedisPwd, showSecret, showPwdDialogPwd,
+            showPwdDialog, pwdDialogPwd,
+            loginForm, limitDialog, lastCdk, batchCdkList, generatingCDK,
+            users, userPage, userSize, userTotal, userFilter,
+            cdks, cdkPage, cdkSize, cdkTotal, cdkForm, configForm, savingConfig,
+            dashStats,
+            isDark, expandedRow, statusDialog,
+            handleLogin, confirmLogout, switchTab, doSearch, resetFilter,
+            toggleExpand, openStatusEdit, submitStatus, totalPages, totalCdkPages,
+            fetchUsers, fetchDashboardStats, fetchCDKs, fetchConfig, fetchConfigPlaintext, saveConfig,
+            handleSetStatus, openLimitEdit, submitLimit,
+            resetPassword, submitPasswordReset, pwdDialog, regenToken,
+            deleteAsset, deleteUser,
+            handleGenerateCDK, handleBatchGenerateCDK, revokeCDK, copyCdk, copyAllBatchCDK,
+            toggleAdminTheme,
+            getStatusText, getCardTypeText, getScopeText, formatDate, isExpired
+        };
+    }
+}).mount('#app');
+</script>
+</body>
+</html>
